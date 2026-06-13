@@ -1,0 +1,2357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Wild Road Spirits — CRM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ─── TOKENS ─────────────────────────────────────────────── */
+:root {
+  --bg:          #1C1917;
+  --bg-card:     #252220;
+  --bg-raised:   #2E2A27;
+  --bg-input:    #332F2B;
+  --border:      #3D3832;
+  --border-light:#4A4540;
+  --text:        #F5F0E8;
+  --text-muted:  #9A9390;
+  --text-dim:    #6B6662;
+  --amber:       #C4692A;
+  --amber-light: #D4804A;
+  --amber-dim:   #7A3E18;
+  --sage:        #7A9E7E;
+  --sage-dim:    #3D5E40;
+  --red:         #C44A4A;
+  --red-dim:     #6B2828;
+  --yellow:      #C4A84A;
+  --yellow-dim:  #6B5A28;
+  --blue:        #4A7AC4;
+  --blue-dim:    #28406B;
+  --sidebar-w:   220px;
+  --radius:      8px;
+  --radius-lg:   12px;
+}
+
+/* ─── RESET ──────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.5; overflow: hidden; }
+a { color: inherit; text-decoration: none; }
+button { cursor: pointer; font-family: inherit; border: none; background: none; }
+input, textarea, select { font-family: inherit; font-size: 14px; }
+svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+ul { list-style: none; }
+
+/* ─── LAYOUT ─────────────────────────────────────────────── */
+#app { display: flex; height: 100vh; }
+
+#sidebar {
+  width: var(--sidebar-w);
+  background: var(--bg-card);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  padding: 0;
+}
+
+#main {
+  flex: 1;
+  overflow-y: auto;
+  position: relative;
+}
+
+.view { display: none; min-height: 100%; }
+.view.active { display: block; }
+
+/* ─── SIDEBAR ────────────────────────────────────────────── */
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 20px 16px 18px;
+  border-bottom: 1px solid var(--border);
+}
+.logo-mark {
+  width: 36px; height: 36px;
+  background: var(--amber);
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Playfair Display', serif;
+  font-weight: 700; font-size: 14px;
+  color: #fff; flex-shrink: 0;
+}
+.logo-text { display: flex; flex-direction: column; }
+.logo-title { font-family: 'Playfair Display', serif; font-size: 13px; font-weight: 600; letter-spacing: 0.02em; }
+.logo-sub { font-size: 10px; color: var(--text-dim); letter-spacing: 0.05em; text-transform: uppercase; }
+
+.nav-links { padding: 10px 8px; flex: 1; }
+.nav-item {
+  display: flex; align-items: center; gap: 9px;
+  padding: 9px 10px;
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  font-size: 13px; font-weight: 500;
+  transition: background 0.15s, color 0.15s;
+  margin-bottom: 2px;
+}
+.nav-item:hover { background: var(--bg-raised); color: var(--text); }
+.nav-item.active { background: var(--amber-dim); color: var(--amber-light); }
+.nav-item svg { width: 15px; height: 15px; }
+
+.sidebar-footer {
+  padding: 12px 8px;
+  border-top: 1px solid var(--border);
+}
+.btn-ghost {
+  display: flex; align-items: center; gap: 8px;
+  width: 100%; padding: 8px 10px;
+  border-radius: var(--radius);
+  color: var(--text-muted); font-size: 12px;
+  transition: background 0.15s, color 0.15s;
+}
+.btn-ghost:hover { background: var(--bg-raised); color: var(--text); }
+.btn-ghost svg { width: 14px; height: 14px; }
+
+/* ─── PAGE HEADER ────────────────────────────────────────── */
+.page-header {
+  padding: 28px 32px 0;
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 16px;
+}
+.page-title { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 600; }
+.page-sub { color: var(--text-muted); font-size: 13px; margin-top: 3px; }
+.page-actions { display: flex; gap: 8px; flex-shrink: 0; padding-top: 4px; }
+
+/* ─── BUTTONS ────────────────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 8px 14px; border-radius: var(--radius);
+  font-size: 13px; font-weight: 500;
+  transition: opacity 0.15s, transform 0.1s;
+}
+.btn:active { transform: scale(0.97); }
+.btn-primary { background: var(--amber); color: #fff; }
+.btn-primary:hover { opacity: 0.9; }
+.btn-secondary { background: var(--bg-raised); color: var(--text); border: 1px solid var(--border); }
+.btn-secondary:hover { border-color: var(--border-light); }
+.btn-danger { background: var(--red-dim); color: var(--red); border: 1px solid var(--red-dim); }
+.btn-danger:hover { background: var(--red); color: #fff; }
+.btn svg { width: 14px; height: 14px; }
+
+/* ─── CARDS ──────────────────────────────────────────────── */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+}
+.card-title {
+  font-size: 11px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--text-dim); margin-bottom: 14px;
+}
+
+/* ─── PILLS / STATUS ─────────────────────────────────────── */
+.pill {
+  display: inline-flex; align-items: center;
+  padding: 3px 9px; border-radius: 20px;
+  font-size: 11px; font-weight: 600; letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.pill-stocked    { background: var(--sage-dim);   color: var(--sage); }
+.pill-warm       { background: var(--yellow-dim);  color: var(--yellow); }
+.pill-prospect   { background: var(--blue-dim);    color: var(--blue); }
+.pill-reengage   { background: var(--amber-dim);   color: var(--amber-light); }
+.pill-cold       { background: var(--bg-raised);   color: var(--text-muted); }
+.pill-nostock    { background: var(--red-dim);     color: var(--red); }
+
+/* ─── FORMS ──────────────────────────────────────────────── */
+.form-group { margin-bottom: 16px; }
+.form-label { display: block; font-size: 12px; font-weight: 500; color: var(--text-muted); margin-bottom: 6px; letter-spacing: 0.03em; }
+.form-input, .form-select, .form-textarea {
+  width: 100%; padding: 9px 12px;
+  background: var(--bg-input); border: 1px solid var(--border);
+  border-radius: var(--radius); color: var(--text);
+  transition: border-color 0.15s;
+}
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+  outline: none; border-color: var(--amber);
+}
+.form-select { appearance: none; cursor: pointer; }
+.form-textarea { resize: vertical; min-height: 80px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+
+/* ─── DASHBOARD ──────────────────────────────────────────── */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  padding: 24px 32px 0;
+}
+.stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+}
+.stat-label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.07em; font-weight: 600; }
+.stat-value { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 700; margin: 6px 0 4px; }
+.stat-sub { font-size: 11px; color: var(--text-muted); }
+.stat-accent { color: var(--amber); }
+.stat-sage { color: var(--sage); }
+.stat-red { color: var(--red); }
+.stat-blue { color: var(--blue); }
+
+.dashboard-lower {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  padding: 14px 32px 32px;
+}
+
+.overdue-list, .recent-list { display: flex; flex-direction: column; gap: 8px; }
+.overdue-item, .recent-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 12px;
+  background: var(--bg-raised);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: border-color 0.15s;
+  border: 1px solid transparent;
+}
+.overdue-item:hover, .recent-item:hover { border-color: var(--border-light); }
+.overdue-name { font-size: 13px; font-weight: 500; }
+.overdue-meta { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+.overdue-days { font-size: 11px; font-weight: 600; color: var(--red); }
+
+/* ─── VENUES LIST ────────────────────────────────────────── */
+.venues-controls {
+  padding: 20px 32px;
+  display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+}
+.search-box {
+  position: relative; flex: 1; min-width: 200px;
+}
+.search-box svg {
+  position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+  color: var(--text-dim); width: 14px; height: 14px;
+}
+.search-box input {
+  width: 100%; padding: 8px 12px 8px 34px;
+  background: var(--bg-input); border: 1px solid var(--border);
+  border-radius: var(--radius); color: var(--text);
+}
+.search-box input:focus { outline: none; border-color: var(--amber); }
+.filter-select {
+  padding: 8px 12px; background: var(--bg-input);
+  border: 1px solid var(--border); border-radius: var(--radius);
+  color: var(--text); cursor: pointer;
+}
+.filter-select:focus { outline: none; border-color: var(--amber); }
+
+.venues-area-section { padding: 0 32px 32px; }
+.area-header {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 0 10px;
+  font-size: 11px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--text-dim);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 8px;
+}
+.area-count {
+  background: var(--bg-raised); color: var(--text-muted);
+  padding: 1px 7px; border-radius: 10px; font-size: 10px;
+}
+
+.venue-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 120px;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background 0.12s, border-color 0.12s;
+  margin-bottom: 4px;
+}
+.venue-row:hover { background: var(--bg-raised); border-color: var(--border); }
+.venue-name { font-size: 13px; font-weight: 500; }
+.venue-contact { font-size: 12px; color: var(--text-muted); }
+.venue-type { font-size: 11px; color: var(--text-dim); }
+.venue-last-seen { font-size: 11px; color: var(--text-muted); }
+.venue-row-actions { display: flex; justify-content: flex-end; gap: 6px; }
+
+/* ─── VENUE DETAIL ───────────────────────────────────────── */
+.venue-detail-header {
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+  padding: 0 32px;
+}
+.venue-detail-back {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12px; color: var(--text-muted);
+  padding: 16px 0 14px;
+  cursor: pointer; transition: color 0.15s;
+}
+.venue-detail-back:hover { color: var(--text); }
+.venue-detail-back svg { width: 13px; height: 13px; }
+.venue-detail-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 32px; font-weight: 700;
+  padding-bottom: 4px;
+}
+.venue-detail-meta {
+  display: flex; align-items: center; gap: 12px;
+  padding-bottom: 20px;
+  flex-wrap: wrap;
+}
+.venue-detail-meta span { font-size: 13px; color: var(--text-muted); }
+.venue-detail-meta .sep { color: var(--border-light); }
+
+.venue-detail-body {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 20px;
+  padding: 24px 32px 40px;
+  align-items: start;
+}
+.venue-detail-main { display: flex; flex-direction: column; gap: 20px; }
+.venue-detail-side { display: flex; flex-direction: column; gap: 16px; }
+
+/* Tabs */
+.tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
+.tab {
+  padding: 10px 16px; font-size: 13px; font-weight: 500;
+  color: var(--text-muted); cursor: pointer;
+  border-bottom: 2px solid transparent; margin-bottom: -1px;
+  transition: color 0.15s, border-color 0.15s;
+}
+.tab:hover { color: var(--text); }
+.tab.active { color: var(--amber-light); border-bottom-color: var(--amber); }
+
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* Visit log */
+.visit-entry {
+  padding: 14px 16px;
+  background: var(--bg-raised);
+  border-radius: var(--radius);
+  border-left: 3px solid var(--border-light);
+  margin-bottom: 10px;
+}
+.visit-entry.tasting { border-left-color: var(--amber); }
+.visit-entry.order { border-left-color: var(--sage); }
+.visit-date { font-size: 11px; color: var(--text-dim); margin-bottom: 4px; }
+.visit-note { font-size: 13px; line-height: 1.6; }
+.visit-tags { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+.visit-tag { font-size: 10px; padding: 2px 7px; border-radius: 10px; background: var(--bg-card); color: var(--text-muted); border: 1px solid var(--border); }
+
+/* Products stocked */
+.products-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+.product-chip {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 12px; border-radius: 20px;
+  background: var(--bg-raised); border: 1px solid var(--border);
+  font-size: 12px; font-weight: 500;
+}
+.product-chip.active { border-color: var(--sage-dim); background: var(--sage-dim); color: var(--sage); }
+.product-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+
+/* Order rows */
+.order-row {
+  display: grid; grid-template-columns: 1fr 80px 80px 80px;
+  gap: 8px; align-items: center;
+  padding: 10px 12px;
+  background: var(--bg-raised); border-radius: var(--radius);
+  margin-bottom: 6px; font-size: 13px;
+}
+.order-row-header { font-size: 10px; color: var(--text-dim); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+
+/* Next action */
+.next-action-box {
+  background: var(--amber-dim);
+  border: 1px solid var(--amber);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+}
+.next-action-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--amber-light); margin-bottom: 6px; }
+.next-action-text { font-size: 13px; color: var(--text); }
+.next-action-due { font-size: 11px; color: var(--amber-light); margin-top: 4px; }
+
+/* Contact card */
+.contact-entry {
+  padding: 12px 14px;
+  background: var(--bg-raised); border-radius: var(--radius);
+  margin-bottom: 8px;
+}
+.contact-name { font-size: 13px; font-weight: 600; }
+.contact-role { font-size: 11px; color: var(--text-dim); margin-bottom: 6px; }
+.contact-detail { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--text-muted); margin-top: 3px; }
+.contact-detail svg { width: 12px; height: 12px; color: var(--text-dim); }
+.contact-detail a:hover { color: var(--amber-light); }
+
+/* ─── PLANNER ─────────────────────────────────────────────── */
+.planner-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+  padding: 24px 32px 32px;
+}
+.planner-day { display: flex; flex-direction: column; gap: 8px; }
+.planner-day-header {
+  font-family: 'Playfair Display', serif;
+  font-size: 15px; font-weight: 600;
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.planner-day-label { color: var(--text-dim); font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 500; }
+.planner-slot {
+  padding: 11px 13px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.planner-slot:hover { border-color: var(--border-light); }
+.planner-slot-name { font-size: 13px; font-weight: 500; }
+.planner-slot-area { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+.planner-add {
+  padding: 10px; text-align: center;
+  border: 1px dashed var(--border); border-radius: var(--radius);
+  color: var(--text-dim); font-size: 12px; cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+.planner-add:hover { border-color: var(--amber); color: var(--amber-light); }
+
+/* ─── STOCK ──────────────────────────────────────────────── */
+.stock-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  padding: 24px 32px 0;
+}
+.stock-card { }
+.stock-product-name { font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 600; margin-bottom: 12px; }
+.stock-bar-wrap { background: var(--bg-raised); border-radius: 4px; height: 6px; margin: 8px 0 4px; overflow: hidden; }
+.stock-bar { height: 100%; border-radius: 4px; background: var(--sage); transition: width 0.4s; }
+.stock-bar.warn { background: var(--yellow); }
+.stock-bar.low { background: var(--red); }
+.stock-numbers { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); }
+.stock-big { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; margin: 4px 0; }
+
+.stock-log { padding: 14px 32px 32px; }
+.delivery-row {
+  display: grid; grid-template-columns: 1.5fr 1fr 1fr 80px 80px;
+  gap: 10px; align-items: center;
+  padding: 10px 14px;
+  background: var(--bg-raised); border-radius: var(--radius);
+  margin-bottom: 6px; font-size: 13px;
+}
+.delivery-header-row { font-size: 10px; color: var(--text-dim); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; background: transparent; padding: 0 14px 6px; }
+
+/* ─── METRICS ─────────────────────────────────────────────── */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  padding: 24px 32px 0;
+}
+.metrics-lower {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 14px;
+  padding: 14px 32px 32px;
+}
+
+.chart-wrap {
+  position: relative;
+  height: 200px;
+  margin-top: 8px;
+}
+canvas { display: block; }
+
+.leaderboard-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.leaderboard-row:last-child { border-bottom: none; }
+.leaderboard-rank { font-size: 11px; color: var(--text-dim); width: 20px; }
+.leaderboard-name { flex: 1; }
+.leaderboard-val { font-weight: 600; color: var(--sage); }
+
+.cashflow-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 0; border-bottom: 1px solid var(--border);
+}
+.cashflow-row:last-child { border-bottom: none; }
+.cashflow-label { font-size: 13px; }
+.cashflow-val { font-size: 14px; font-weight: 600; }
+.cashflow-val.positive { color: var(--sage); }
+.cashflow-val.negative { color: var(--red); }
+
+/* ─── MODAL ──────────────────────────────────────────────── */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.65);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 100; padding: 20px;
+}
+.modal-overlay.hidden { display: none; }
+.modal-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  width: 100%; max-width: 560px;
+  max-height: 88vh; overflow-y: auto;
+}
+.modal-title { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 600; margin-bottom: 20px; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
+
+/* ─── MISC ───────────────────────────────────────────────── */
+.empty-state {
+  text-align: center; padding: 48px 20px;
+  color: var(--text-dim); font-size: 13px;
+}
+.empty-state svg { width: 32px; height: 32px; margin: 0 auto 12px; display: block; opacity: 0.4; }
+
+.divider { height: 1px; background: var(--border); margin: 16px 0; }
+
+.tag-row { display: flex; gap: 6px; flex-wrap: wrap; }
+.tag {
+  font-size: 10px; padding: 2px 8px; border-radius: 10px;
+  font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em;
+}
+.tag-bar       { background: var(--blue-dim);   color: var(--blue); }
+.tag-restaurant{ background: var(--amber-dim);  color: var(--amber-light); }
+.tag-bottleshop{ background: var(--sage-dim);   color: var(--sage); }
+.tag-hotel     { background: var(--bg-raised);  color: var(--text-muted); border: 1px solid var(--border); }
+
+.scroll-area { overflow-y: auto; }
+
+/* ─── SCROLLBAR ──────────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+
+/* ─── GOAL PROGRESS ──────────────────────────────────────── */
+.goal-bar-wrap {
+  background: var(--bg-raised); border-radius: 6px;
+  height: 8px; margin-top: 10px; overflow: hidden;
+}
+.goal-bar { height: 100%; background: var(--amber); border-radius: 6px; transition: width 0.6s cubic-bezier(0.4,0,0.2,1); }
+.goal-label { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); margin-top: 5px; }
+
+/* ─── BOTTOM NAV (mobile only) ───────────────────────────── */
+#bottomnav {
+  display: none;
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: var(--bg-card);
+  border-top: 1px solid var(--border);
+  z-index: 50;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+.bottomnav-row { display: flex; justify-content: space-around; align-items: center; height: 58px; }
+.bottomnav-item {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  color: var(--text-dim); font-size: 10px; font-weight: 500;
+  flex: 1; padding: 6px 0;
+  transition: color 0.15s;
+}
+.bottomnav-item.active { color: var(--amber-light); }
+.bottomnav-item svg { width: 20px; height: 20px; }
+
+/* Floating action button */
+.fab {
+  display: none;
+  position: fixed; right: 16px; bottom: 74px;
+  width: 52px; height: 52px; border-radius: 50%;
+  background: var(--amber); color: #fff;
+  align-items: center; justify-content: center;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+  z-index: 51; border: none;
+}
+.fab svg { width: 24px; height: 24px; }
+
+/* ─── TODAY VIEW (mobile home) ──────────────────────────── */
+.today-header {
+  padding: 20px 16px 4px;
+}
+.today-date { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 600; }
+.today-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+.today-progress {
+  display: flex; align-items: center; gap: 10px;
+  padding: 14px 16px;
+  margin: 12px 16px;
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+.today-progress-ring {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: var(--amber-dim);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Playfair Display', serif; font-weight: 700; font-size: 15px;
+  color: var(--amber-light); flex-shrink: 0;
+}
+
+.today-card {
+  margin: 0 16px 12px;
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+}
+.today-card.done { opacity: 0.5; }
+.today-card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.today-card-name { font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 600; }
+.today-card-meta { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
+.today-card-actions { display: flex; gap: 8px; margin-top: 14px; }
+.today-btn {
+  flex: 1; padding: 12px; border-radius: var(--radius);
+  font-size: 13px; font-weight: 600; text-align: center;
+  border: 1px solid var(--border);
+}
+.today-btn-primary { background: var(--amber); color: #fff; border: none; }
+.today-btn-secondary { background: var(--bg-raised); color: var(--text); }
+
+/* ─── MOBILE BOTTOM SHEET MODAL ──────────────────────────── */
+@media (max-width: 640px) {
+  .modal-overlay { align-items: flex-end; padding: 0; }
+  .modal-box {
+    max-width: 100%; width: 100%;
+    border-radius: 16px 16px 0 0;
+    max-height: 92vh;
+    padding: 20px 16px calc(20px + env(safe-area-inset-bottom, 0));
+    animation: slideUp 0.22s ease-out;
+  }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+}
+
+/* ─── RESPONSIVE ─────────────────────────────────────────── */
+@media (max-width: 900px) {
+  :root { --sidebar-w: 56px; }
+  .logo-text, .nav-item span, .btn-ghost span, .sidebar-footer .btn-ghost { display: none; }
+  .nav-item { justify-content: center; padding: 10px; }
+  .logo-mark { margin: 0 auto; }
+  .sidebar-logo { justify-content: center; padding: 16px 8px; }
+  .dashboard-grid { grid-template-columns: 1fr 1fr; }
+  .planner-grid { grid-template-columns: 1fr; }
+  .metrics-grid { grid-template-columns: 1fr 1fr; }
+  .venue-detail-body { grid-template-columns: 1fr; }
+  .form-row, .form-row-3 { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 640px) {
+  /* Hide desktop sidebar, show bottom nav */
+  #sidebar { display: none; }
+  #bottomnav { display: block; }
+  .fab { display: flex; }
+  #main { padding-bottom: 70px; }
+
+  /* Page header */
+  .page-header { padding: 16px 16px 0; flex-direction: column; align-items: flex-start; gap: 10px; }
+  .page-title { font-size: 21px; }
+  .page-actions { width: 100%; }
+  .page-actions .btn { flex: 1; justify-content: center; }
+
+  /* Dashboard */
+  .dashboard-grid { grid-template-columns: 1fr 1fr; padding: 16px 16px 0; gap: 10px; }
+  .stat-card { padding: 14px; }
+  .stat-value { font-size: 24px; }
+  .dashboard-lower { grid-template-columns: 1fr; padding: 10px 16px 16px; gap: 10px; }
+
+  /* Venues list */
+  .venues-controls { padding: 14px 16px; flex-direction: column; align-items: stretch; }
+  .filter-select { width: 100%; }
+  .venues-area-section { padding: 0 16px 90px; }
+
+  .venue-row {
+    grid-template-columns: 1fr;
+    gap: 6px;
+    padding: 14px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    margin-bottom: 8px;
+  }
+  .venue-row > div:nth-child(2),
+  .venue-row > div:nth-child(3) { display: inline-block; margin-right: 8px; }
+  .venue-name { font-size: 15px; }
+  .venue-row-actions { justify-content: stretch; margin-top: 6px; }
+  .venue-row-actions .btn { flex: 1; padding: 9px; font-size: 12px; }
+
+  /* Venue detail */
+  .venue-detail-header { padding: 0 16px; }
+  .venue-detail-title { font-size: 24px; }
+  .venue-detail-meta { gap: 8px; padding-bottom: 16px; }
+  .venue-detail-meta div { width: 100%; margin-left: 0 !important; display: flex; gap: 8px; margin-top: 8px; }
+  .venue-detail-meta div .btn { flex: 1; justify-content: center; }
+  .venue-detail-body { padding: 16px 16px 90px; gap: 14px; }
+  .tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .tab { white-space: nowrap; padding: 10px 12px; font-size: 12px; }
+
+  /* Orders table -> stack */
+  .order-row, .order-row-header { grid-template-columns: 1fr 1fr; gap: 6px 10px; }
+  .order-row-header span:nth-child(3), .order-row-header span:nth-child(4) { display: none; }
+
+  /* Planner */
+  .planner-grid { padding: 14px 16px 90px; gap: 14px; }
+
+  /* Stock */
+  .stock-grid { grid-template-columns: 1fr 1fr; padding: 16px 16px 0; gap: 10px; }
+  .stock-log { padding: 14px 16px 90px; }
+  .delivery-row, .delivery-header-row { grid-template-columns: 1.5fr 1fr 1fr; gap: 6px; font-size: 12px; }
+  .delivery-row span:nth-child(4), .delivery-row span:nth-child(5),
+  .delivery-header-row span:nth-child(4), .delivery-header-row span:nth-child(5) { display: none; }
+
+  /* Metrics */
+  .metrics-grid { grid-template-columns: 1fr 1fr; padding: 16px 16px 0; gap: 10px; }
+  .metrics-lower { grid-template-columns: 1fr; padding: 10px 16px 90px; gap: 10px; }
+  .chart-wrap { height: 160px; }
+
+  /* Settings */
+  #view-settings > div[style*="grid-template-columns"] { grid-template-columns: 1fr !important; padding: 16px !important; padding-bottom: 90px !important; }
+
+  /* Modal forms */
+  .modal-title { font-size: 18px; }
+}
+
+
+</style>
+</head>
+<body>
+<div id="app">
+  <nav id="sidebar">
+    <div class="sidebar-logo">
+      <span class="logo-mark">WR</span>
+      <div class="logo-text">
+        <span class="logo-title">Wild Road</span>
+        <span class="logo-sub">Spirits CRM</span>
+      </div>
+    </div>
+    <ul class="nav-links">
+      <li><a href="#" class="nav-item active" data-view="dashboard"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Dashboard</a></li>
+      <li><a href="#" class="nav-item" data-view="venues"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>Venues</a></li>
+      <li><a href="#" class="nav-item" data-view="planner"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Week Planner</a></li>
+      <li><a href="#" class="nav-item" data-view="stock"><svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>Stock</a></li>
+      <li><a href="#" class="nav-item" data-view="metrics"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Metrics</a></li>
+      <li><a href="#" class="nav-item" data-view="settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>Settings</a></li>
+    </ul>
+    <div class="sidebar-footer">
+      <button id="exportBtn" class="btn-ghost"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export Data</button>
+    </div>
+  </nav>
+  <main id="main">
+    <div id="view-today" class="view"></div>
+    <div id="view-dashboard" class="view"></div>
+    <div id="view-venues" class="view"></div>
+    <div id="view-venue-detail" class="view"></div>
+    <div id="view-planner" class="view"></div>
+    <div id="view-stock" class="view"></div>
+    <div id="view-metrics" class="view"></div>
+    <div id="view-settings" class="view"></div>
+  </main>
+</div>
+  <nav id="bottomnav">
+    <div class="bottomnav-row">
+      <a href="#" class="bottomnav-item active" data-view="today"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Today</a>
+      <a href="#" class="bottomnav-item" data-view="venues"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>Venues</a>
+      <a href="#" class="bottomnav-item" data-view="planner"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Planner</a>
+      <a href="#" class="bottomnav-item" data-view="stock"><svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>Stock</a>
+      <a href="#" class="bottomnav-item" data-view="metrics"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Metrics</a>
+    </div>
+  </nav>
+<button id="fab" class="fab"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+<div id="modal-overlay" class="modal-overlay hidden">
+  <div id="modal-box" class="modal-box"></div>
+</div>
+<script>
+// ─── WILD ROAD SPIRITS — SEED DATA ───────────────────────────
+// Pre-loaded from WR_Bottleshop_Bars_Perth.xlsx & Wild_Roads_Store_List.xlsx
+
+const DEFAULT_PRODUCTS = [
+  { id: 'p1', name: "Rogue & Vagabond",        type: 'Whisky', rrp: 89 },
+  { id: 'p2', name: "Rose Mami",               type: 'Gin',    rrp: 79 },
+  { id: 'p3', name: "D'ginn Du Sol",           type: 'Gin',    rrp: 79 },
+  { id: 'p4', name: "Gin Ne Sais Quoi",        type: 'Gin',    rrp: 79 },
+  { id: 'p5', name: "Citrus Mistress",         type: 'Gin',    rrp: 79 },
+  { id: 'p6', name: "Rogue & Vagabond Silver Rum", type: 'Rum', rrp: 89 },
+  { id: 'p7', name: "Devine Vodka",            type: 'Vodka',  rrp: 79 },
+  { id: 'p8', name: "Devine Dry Gin",          type: 'Gin',    rrp: 79 },
+];
+
+const AREAS = [
+  'Fremantle & Surrounds',
+  'Northbridge & CBD',
+  'Leederville & Mt Hawthorn',
+  'Maylands & Bayswater',
+  'Subiaco & Claremont',
+  'South of River',
+  'Northern Suburbs',
+  'Regional WA',
+];
+
+const VENUE_TYPES = ['Bottleshop', 'Bar', 'Restaurant', 'Hotel', 'Wine Store'];
+
+const STATUS_OPTIONS = [
+  { value: 'stocked',   label: 'Currently Stocked',   pill: 'pill-stocked'  },
+  { value: 'warm',      label: 'Warm Lead',            pill: 'pill-warm'     },
+  { value: 'prospect',  label: 'Prospect',             pill: 'pill-prospect' },
+  { value: 'reengage',  label: 'Re-engage',            pill: 'pill-reengage' },
+  { value: 'cold',      label: 'Cold Lead',            pill: 'pill-cold'     },
+  { value: 'nostock',   label: 'Not Interested',       pill: 'pill-nostock'  },
+];
+
+// ─── DEFAULT DATA ─────────────────────────────────────────────
+const DEFAULT_VENUES = [
+  // FREMANTLE
+  { id: 'v1', name: "Warders Hotel & Gimlet Bar", area: "Fremantle & Surrounds", type: "Bar", status: "stocked", address: "20 Henderson St, Fremantle", suburb: "Fremantle", contacts: [{ name: "Sasha Nikulinsky", role: "Manager", phone: "", email: "finance@wardershotel.com.au" }], productsStocked: ['p1','p2'], implementation: ["Back Bar"], nextAction: "Check reorder levels — orders through Enq system", nextActionDate: "2025-01-20", notes: "Orders through Enq (enquiry system). Emily Taylor is the key account relationship." },
+  { id: 'v2', name: "The Flaming Galah", area: "Fremantle & Surrounds", type: "Bar", status: "stocked", address: "19B Essex Street, Fremantle 6160", suburb: "Fremantle", contacts: [{ name: "Leala Brekalo", role: "Manager", phone: "", email: "accounts@theflaminggalahfreo.com.au" }], productsStocked: ['p2','p3'], implementation: ["Back Bar"], nextAction: "Confirm current stock levels", nextActionDate: "2025-01-22", notes: "" },
+  { id: 'v3', name: "Malt n Gold", area: "Fremantle & Surrounds", type: "Bottleshop", status: "stocked", address: "20 Wray Ave, Fremantle WA 6160", suburb: "Fremantle", contacts: [{ name: "Nathan DiTienne", role: "Owner", phone: "", email: "" }], productsStocked: ['p1','p2','p3'], implementation: ["Stocked on Prem"], nextAction: "Visit — check full range placement", nextActionDate: "2025-01-21", notes: "" },
+  { id: 'v4', name: "Old Bridge Cellars North Freo", area: "Fremantle & Surrounds", type: "Wine Store", status: "stocked", address: "221 Queen Victoria Street, North Fremantle", suburb: "North Fremantle", contacts: [{ name: "Toby Beeson", role: "Owner", phone: "", email: "info@oldbridge.com.au" }], productsStocked: ['p1','p2','p3','p4'], implementation: ["Stocked on Prem"], nextAction: "New release tasting opportunity", nextActionDate: "2025-01-28", notes: "" },
+  { id: 'v5', name: "Old Bridge Cellars Como", area: "South of River", type: "Wine Store", status: "stocked", address: "461 Canning Hwy, Como", suburb: "Como", contacts: [{ name: "Toby Beeson / Ally", role: "Owner/Manager", phone: "", email: "" }], productsStocked: ['p1','p2'], implementation: ["Stocked on Prem"], nextAction: "Call Ally re stock top-up", nextActionDate: "2025-01-23", notes: "Toby Beeson owns both Old Bridge locations" },
+
+  // NORTHBRIDGE & CBD
+  { id: 'v6', name: "Frisk Small Bar", area: "Northbridge & CBD", type: "Bar", status: "stocked", address: "103 Francis St, Northbridge", suburb: "Northbridge", contacts: [{ name: "Jay", role: "Manager", phone: "", email: "accounts@frisksmallbar.com.au" }], productsStocked: ['p2','p3','p4'], implementation: ["Back Bar", "Cocktail List"], nextAction: "Follow up on cocktail menu update", nextActionDate: "2025-01-21", notes: "" },
+  { id: 'v7', name: "Foxtrot Unicorn", area: "Northbridge & CBD", type: "Bar", status: "stocked", address: "Basement 101 St Georges Terrace, Perth", suburb: "Perth CBD", contacts: [{ name: "", role: "Accounts", phone: "451098865", email: "accounts@foxtrotunicorn.com" }], productsStocked: ['p1','p3'], implementation: ["Back Bar"], nextAction: "Meet new bar manager", nextActionDate: "2025-01-22", notes: "" },
+  { id: 'v8', name: "Neon Palms", area: "Northbridge & CBD", type: "Bar", status: "stocked", address: "245 William Street, Northbridge", suburb: "Northbridge", contacts: [{ name: "Chris", role: "Manager", phone: "", email: "Drinks@neonpalms.com.au" }, { name: "James Cooke", role: "Bar Manager", phone: "", email: "" }], productsStocked: ['p2','p4','p5'], implementation: ["Back Bar", "Cocktail List"], nextAction: "Pitch Rogue & Vagabond for winter cocktail list", nextActionDate: "2025-01-24", notes: "" },
+  { id: 'v9', name: "The Palace Arcade", area: "Northbridge & CBD", type: "Bar", status: "stocked", address: "84 Beaufort Street, Northbridge, Perth", suburb: "Northbridge", contacts: [{ name: "Liam Della", role: "Manager", phone: "", email: "accounts@thepalacearcade.com" }], productsStocked: ['p3','p5'], implementation: ["Back Bar"], nextAction: "Tasting event opportunity", nextActionDate: "2025-01-27", notes: "" },
+  { id: 'v10', name: "Gramercy Bar and Kitchen", area: "Northbridge & CBD", type: "Restaurant", status: "warm", address: "10/777 Hay Street, Central Park", suburb: "Perth CBD", contacts: [{ name: "Steven Reeves", role: "Manager", phone: "", email: "info@gramercybarandkitchen.com.au" }], productsStocked: [], implementation: [], nextAction: "Follow up after initial meeting — pitch gin range for cocktail list", nextActionDate: "2025-01-21", notes: "Had initial visit, good reception. Return with samples." },
+
+  // LEEDERVILLE & MT HAWTHORN
+  { id: 'v11', name: "Oxford Cellars", area: "Leederville & Mt Hawthorn", type: "Bottleshop", status: "stocked", address: "256 Oxford St, Leederville", suburb: "Leederville", contacts: [{ name: "Chris Hohmann", role: "Owner", phone: "", email: "" }], productsStocked: ['p1','p2','p3','p4','p5'], implementation: ["Stocked on Prem"], nextAction: "Monthly check-in — all products in range", nextActionDate: "2025-01-22", notes: "" },
+  { id: 'v12', name: "Naber IIII", area: "Leederville & Mt Hawthorn", type: "Bar", status: "stocked", address: "146 Oxford St, Leederville", suburb: "Leederville", contacts: [{ name: "Ruth", role: "Manager", phone: "", email: "bar@naber.com" }, { name: "Will", role: "Bar Manager", phone: "", email: "" }], productsStocked: ['p2','p5'], implementation: ["Back Bar"], nextAction: "Confirm stock levels with Will", nextActionDate: "2025-01-23", notes: "" },
+  { id: 'v13', name: "Amani Bar and Restaurant", area: "Leederville & Mt Hawthorn", type: "Restaurant", status: "warm", address: "1/162 Oxford St, Leederville", suburb: "Leederville", contacts: [{ name: "Jordan Brook", role: "Manager", phone: "9444 7761", email: "hello@amanibar.com" }], productsStocked: [], implementation: [], nextAction: "Book tasting session with Jordan Brook", nextActionDate: "2025-01-21", notes: "LUC @$65/b. Good fit for gin range on cocktail list." },
+  { id: 'v14', name: "Green Street Cellars", area: "Leederville & Mt Hawthorn", type: "Bottleshop", status: "warm", address: "27 Green Street, Mount Hawthorn 6016", suburb: "Mt Hawthorn", contacts: [{ name: "JJ (Justin)", role: "Manager", phone: "08 9444 2097", email: "hello@greenstreetcellars.com.au" }], productsStocked: [], implementation: [], nextAction: "Follow-up call — manager was not in on visit 30/10", nextActionDate: "2025-01-20", notes: "Manager not in store on 30/10/24, followed up 6/11. Need to revisit." },
+
+  // MAYLANDS & BAYSWATER
+  { id: 'v15', name: "Commune Wine Store", area: "Maylands & Bayswater", type: "Wine Store", status: "stocked", address: "201-217 Railway Parade, Maylands", suburb: "Maylands", contacts: [{ name: "Chris Ford", role: "Owner", phone: "", email: "ahoy@commune.wine" }], productsStocked: ['p1','p2','p3','p4','p5'], implementation: ["Stocked on Prem"], nextAction: "Bring new release samples — they dig new drops", nextActionDate: "2025-01-21", notes: "They dig new releases. One of our strongest accounts." },
+  { id: 'v16', name: "Seasonal Brewing", area: "Maylands & Bayswater", type: "Bar", status: "stocked", address: "175 Guildford Rd, Maylands", suburb: "Maylands", contacts: [{ name: "Greg Paterson", role: "Owner", phone: "", email: "greg@seasonalbrewing.beer" }], productsStocked: ['p3','p5'], implementation: ["Back Bar"], nextAction: "Check in — confirm spirits shelf space", nextActionDate: "2025-01-24", notes: "" },
+  { id: 'v17', name: "Liquor Barons Bayswater", area: "Maylands & Bayswater", type: "Bottleshop", status: "warm", address: "397 Guildford Road, Bayswater", suburb: "Bayswater", contacts: [{ name: "Nick", role: "Manager", phone: "08 9272 2002", email: "info@bayswaterhotel.com.au" }], productsStocked: [], implementation: [], nextAction: "Visit after midday — Damien asked to sample products (14/11)", nextActionDate: "2025-01-21", notes: "Small store. Contacted 12/11. Willing to stock under same standing as Maylands." },
+  { id: 'v18', name: "Liquor Barons Maylands", area: "Maylands & Bayswater", type: "Bottleshop", status: "warm", address: "43-53 Eighth Ave, Maylands", suburb: "Maylands", contacts: [{ name: "Tim", role: "Manager", phone: "08 6162 0985", email: "" }], productsStocked: [], implementation: [], nextAction: "Bring sample bottles — Tim will prioritise sales with samples", nextActionDate: "2025-01-21", notes: "Visited 12/11/24. Will sell all products if pay-as-sells. Also asked about sample bottles to help prioritise product sales." },
+  { id: 'v19', name: "Good Grocer 2nd Avenue", area: "Maylands & Bayswater", type: "Bottleshop", status: "warm", address: "755 Beaufort Street, Mount Lawley", suburb: "Mt Lawley", contacts: [{ name: "Mike", role: "Manager", phone: "08 9272 2900", email: "2ndave@thegoodgrocer.com.au" }], productsStocked: [], implementation: [], nextAction: "Rebook tastings for January — stock wasn't put in system in time", nextActionDate: "2025-01-10", notes: "Visited 31/10/24. Booked tasting 8/11/24 10am-1pm. Rebook for January." },
+  { id: 'v20', name: "Mt Lawley Liquor Store", area: "Maylands & Bayswater", type: "Bottleshop", status: "warm", address: "591 William Street, Mount Lawley 6050", suburb: "Mt Lawley", contacts: [{ name: "Tran Van Lien", role: "Manager", phone: "08 9328 7094", email: "" }], productsStocked: [], implementation: [], nextAction: "Follow-up call — manager not in on 30/10 visit", nextActionDate: "2025-01-20", notes: "Manager not instore on 30/10/24. Follow-up call needed." },
+
+  // SUBIACO & CLAREMONT
+  { id: 'v21', name: "Porters Claremont", area: "Subiaco & Claremont", type: "Bottleshop", status: "stocked", address: "5 Shenton Rd, Claremont", suburb: "Claremont", contacts: [{ name: "Jay Shah", role: "Manager", phone: "", email: "jays@adminiga.com.au" }], productsStocked: ['p1','p2','p4'], implementation: ["Stocked on Prem"], nextAction: "Check range placement and reorder", nextActionDate: "2025-01-22", notes: "" },
+  { id: 'v22', name: "Cellarbrations Subiaco", area: "Subiaco & Claremont", type: "Bottleshop", status: "stocked", address: "3/531 Hay St, Subiaco WA 6008", suburb: "Subiaco", contacts: [{ name: "James", role: "Manager", phone: "08 9388 1040", email: "sales@cbsubiaco.com.au" }], productsStocked: ['p2','p3'], implementation: ["Stocked on Prem"], nextAction: "Check in on sales velocity", nextActionDate: "2025-01-23", notes: "" },
+  { id: 'v23', name: "Wise Child Wine Store", area: "Subiaco & Claremont", type: "Wine Store", status: "warm", address: "28 Thompson Road, North Fremantle 6159", suburb: "North Fremantle", contacts: [{ name: "", role: "Owner", phone: "0487 201 880", email: "hello@wisechild.store" }], productsStocked: [], implementation: [], nextAction: "First approach — quality indie wine store, good fit", nextActionDate: "2025-01-28", notes: "ABN: 75 667 887 304. Independent wine store, strong craft focus." },
+  { id: 'v24', name: "King Somm", area: "Subiaco & Claremont", type: "Wine Store", status: "prospect", address: "13 King William Street, Bayswater 6053", suburb: "Bayswater", contacts: [{ name: "", role: "", phone: "0429 211 858", email: "hello@kingsomm.com.au" }], productsStocked: [], implementation: [], nextAction: "Cold approach — fits our quality positioning", nextActionDate: "2025-01-28", notes: "" },
+
+  // SOUTH OF RIVER
+  { id: 'v25', name: "Liquor Shed Jandakot", area: "South of River", type: "Bottleshop", status: "stocked", address: "628 Karel Avenue, Jandakot", suburb: "Jandakot", contacts: [{ name: "Hofmann Hewitt", role: "Manager", phone: "", email: "" }], productsStocked: ['p1','p3'], implementation: ["Stocked on Prem"], nextAction: "Monthly restock visit", nextActionDate: "2025-01-23", notes: "" },
+  { id: 'v26', name: "Cellarbrations Carlisle", area: "South of River", type: "Bottleshop", status: "stocked", address: "2 Wright Street, Kewdale", suburb: "Kewdale", contacts: [{ name: "Tim / Adam", role: "Manager", phone: "9361 1434", email: "accounts@cellarbrationscarlisle.com.au" }], productsStocked: ['p2','p3','p4'], implementation: ["Stocked on Prem"], nextAction: "Routine check-in", nextActionDate: "2025-01-22", notes: "" },
+  { id: 'v27', name: "Cellarbrations Vic Park", area: "South of River", type: "Bottleshop", status: "stocked", address: "977 Albany Hwy, East Victoria Park", suburb: "East Victoria Park", contacts: [{ name: "Tim / Adam", role: "Manager", phone: "9361 4049", email: "accounts@cellarbrationsvicpark.com.au" }], productsStocked: ['p2','p3'], implementation: ["Stocked on Prem"], nextAction: "Routine check-in", nextActionDate: "2025-01-23", notes: "" },
+  { id: 'v28', name: "Como Liquor Store", area: "South of River", type: "Bottleshop", status: "prospect", address: "296 Canning Hwy, Como", suburb: "Como", contacts: [{ name: "Dane", role: "Manager", phone: "9367 1682", email: "dane@comoliquor.com.au" }], productsStocked: [], implementation: [], nextAction: "First approach visit", nextActionDate: "2025-01-29", notes: "LUC @$46.50. Good independent bottleshop." },
+  { id: 'v29', name: "Canningbridge Liquor Barons", area: "South of River", type: "Bottleshop", status: "prospect", address: "916 Canning Highway, Applecross WA", suburb: "Applecross", contacts: [{ name: "Grant", role: "Manager", phone: "08 9316 3533", email: "" }], productsStocked: [], implementation: [], nextAction: "Visit on next South of River run", nextActionDate: "2025-01-29", notes: "" },
+
+  // NORTHERN SUBURBS
+  { id: 'v30', name: "Copper & Oak", area: "Northern Suburbs", type: "Bottleshop", status: "stocked", address: "235 North Beach Drive, Tuart Hill", suburb: "Tuart Hill", contacts: [{ name: "Jose Pestana", role: "Owner", phone: "9440 4989", email: "info@copperandoak.com.au" }], productsStocked: ['p2','p3','p4','p5'], implementation: ["Stocked on Prem"], nextAction: "Push whisky & rum range — have most gins already", nextActionDate: "2025-01-22", notes: "They have most Gins, haven't picked up more whisky in a while." },
+  { id: 'v31', name: "Liquor Barons Duncraig", area: "Northern Suburbs", type: "Bottleshop", status: "stocked", address: "Shop 6, 8 Burragah Way, Duncraig", suburb: "Duncraig", contacts: [{ name: "Travis Stacey", role: "Manager", phone: "", email: "duncraig@liquorbarons.com.au" }], productsStocked: ['p1','p2'], implementation: ["Stocked on Prem"], nextAction: "Check in and expand range", nextActionDate: "2025-01-23", notes: "" },
+  { id: 'v32', name: "Scarborough Cellars", area: "Northern Suburbs", type: "Bottleshop", status: "stocked", address: "166A Scarborough Beach Road, Scarborough", suburb: "Scarborough", contacts: [{ name: "Jordan Lukey", role: "Manager", phone: "", email: "hello@scarboroughcellars.com.au" }], productsStocked: ['p2','p3','p4'], implementation: ["Stocked on Prem"], nextAction: "Routine check-in", nextActionDate: "2025-01-24", notes: "" },
+  { id: 'v33', name: "Liquor Barons Wembley Downs", area: "Northern Suburbs", type: "Bottleshop", status: "stocked", address: "Unit 5, 45-53 Eighth Avenue", suburb: "Wembley Downs", contacts: [{ name: "Peter", role: "Manager", phone: "", email: "wembleydowns@liquorbrons.com.au" }], productsStocked: ['p1','p3'], implementation: ["Stocked on Prem"], nextAction: "Monthly visit", nextActionDate: "2025-01-23", notes: "" },
+  { id: 'v34', name: "Liquor Barons Carlisle", area: "South of River", type: "Bottleshop", status: "stocked", address: "88 Bishopsgate St, Carlisle", suburb: "Carlisle", contacts: [{ name: "Basil Giulia", role: "Manager", phone: "", email: "carlisle@liquorbarons.com.au" }], productsStocked: ['p1','p2','p3'], implementation: ["Stocked on Prem"], nextAction: "Routine check-in", nextActionDate: "2025-01-24", notes: "" },
+
+  // PROSPECT POOL
+  { id: 'v35', name: "Brixton Yard", area: "Maylands & Bayswater", type: "Bar", status: "prospect", address: "217 Railway Parade, Maylands WA 6051", suburb: "Maylands", contacts: [{ name: "Sam Johnson", role: "Manager", phone: "0422 784 900", email: "accounts@brixtonyard.com.au" }], productsStocked: [], implementation: [], nextAction: "Cold approach — good bar, fits brand", nextActionDate: "2025-02-04", notes: "Accounts contact: Katherine Jackson. katherine@brixtonyard.com.au" },
+  { id: 'v36', name: "Grand Cru Wine Shop", area: "Maylands & Bayswater", type: "Wine Store", status: "stocked", address: "654 Beaufort St, Inglewood", suburb: "Inglewood", contacts: [{ name: "", role: "", phone: "", email: "wine@grandcruwineshop.com.au" }], productsStocked: ['p1','p2'], implementation: ["Stocked on Prem"], nextAction: "Visit — no contact name on file, introduce yourself", nextActionDate: "2025-01-22", notes: "" },
+  { id: 'v37', name: "Devine Cellars Inglewood", area: "Maylands & Bayswater", type: "Bottleshop", status: "stocked", address: "911 Beaufort Street, Inglewood", suburb: "Inglewood", contacts: [{ name: "Steve Colangelo", role: "Owner", phone: "9271 9197", email: "info@devinecellars.com.au" }], productsStocked: ['p1','p2','p3','p4','p5'], implementation: ["Stocked on Prem"], nextAction: "Check in — have picked up all products", nextActionDate: "2025-01-22", notes: "They've picked up all products. Strong account." },
+  { id: 'v38', name: "Devine Cellars Noranda", area: "Northern Suburbs", type: "Bottleshop", status: "stocked", address: "41/42 Benara Rd, Noranda", suburb: "Noranda", contacts: [{ name: "Andy", role: "Manager", phone: "9275 2000", email: "noranda@devinecellars.com.au" }], productsStocked: ['p1','p2','p3','p4','p5'], implementation: ["Stocked on Prem"], nextAction: "Check in — all products stocked", nextActionDate: "2025-01-23", notes: "All products stocked, seemingly split cartons between stores with Inglewood." },
+  { id: 'v39', name: "Mindarie Marina", area: "Northern Suburbs", type: "Restaurant", status: "stocked", address: "33 Ocean Falls Boulevard, Mindarie", suburb: "Mindarie", contacts: [{ name: "Andrew Shugg", role: "Manager", phone: "", email: "accounts@themarinamindarie.com" }], productsStocked: ['p2','p5'], implementation: ["Back Bar"], nextAction: "Visit — check bar program", nextActionDate: "2025-01-28", notes: "" },
+  { id: 'v40', name: "Cellarbrations Leeming", area: "South of River", type: "Bottleshop", status: "warm", address: "11/55 Farrington Road, Leeming", suburb: "Leeming", contacts: [{ name: "Charlie (Grant)", role: "Owner", phone: "08 9219 7050", email: "c.grant@grantgroup.com.au" }], productsStocked: [], implementation: [], nextAction: "Email Charlie, organise face-to-face with product owner", nextActionDate: "2025-01-20", notes: "Visited 31/10/24. Owner suggested email to arrange F2F with a product owner/ambassador. Also owns Cellarbrations Pearsall & Liquor Barons Kalgoorlie." },
+  { id: 'v41', name: "Cellarbrations Morley", area: "Northern Suburbs", type: "Bottleshop", status: "nostock", address: "27 Turon Street, Morley WA 6062", suburb: "Morley", contacts: [{ name: "Tuc", role: "Owner", phone: "08 9279 1788", email: "" }], productsStocked: [], implementation: [], nextAction: "Low priority revisit in 6 months", nextActionDate: "2025-07-01", notes: "Visited 31/10/24. Not interested — says customers mainly buy cheap spirits on sale. Price concern." },
+  { id: 'v42', name: "Mane Liquor Midland", area: "Northern Suburbs", type: "Bottleshop", status: "stocked", address: "237 Great Eastern Highway, Midland", suburb: "Midland", contacts: [{ name: "Josh / James", role: "Owner", phone: "", email: "shop@maneliquor.com.au" }], productsStocked: ['p2','p3'], implementation: ["Stocked on Prem"], nextAction: "Store visit — check stock, pitch rum range", nextActionDate: "2025-01-22", notes: "Check stock and see about taking on rum." },
+  { id: 'v43', name: "Mane Liquor Osborne Park", area: "Northern Suburbs", type: "Bottleshop", status: "stocked", address: "3/392 Scarborough Beach Rd, Osborne Park WA 6017", suburb: "Osborne Park", contacts: [{ name: "Josh / James", role: "Owner", phone: "", email: "shop@maneliquor.com.au" }], productsStocked: ['p2'], implementation: ["Stocked on Prem"], nextAction: "Routine check-in", nextActionDate: "2025-01-23", notes: "" },
+  // Regional
+  { id: 'v44', name: "Bob's Boutique Bar", area: "Regional WA", type: "Bar", status: "stocked", address: "25 Cathedral Ave, Geraldton", suburb: "Geraldton", contacts: [{ name: "Millie / Maylis", role: "Manager", phone: "", email: "bobsbar@thegerald.com.au" }], productsStocked: ['p2','p3'], implementation: ["Back Bar"], nextAction: "Regional visit — confirm stock levels", nextActionDate: "2025-02-15", notes: "" },
+  { id: 'v45', name: "Cellarbrations Geraldton (Queens)", area: "Regional WA", type: "Bottleshop", status: "stocked", address: "79 Durlacher St, Geraldton", suburb: "Geraldton", contacts: [{ name: "Justin Lazenby", role: "Manager", phone: "", email: "Queensliquor@rsgwa.com.au" }], productsStocked: ['p1','p2'], implementation: ["Stocked on Prem"], nextAction: "Regional visit — check range", nextActionDate: "2025-02-15", notes: "" },
+];
+
+const DEFAULT_VISITS = [
+  { id: 'vis2', venueId: 'v18', date: '2024-11-12', type: 'visit', note: 'Tim happy to take full range on pay-as-sells basis. Asked specifically for sample bottles to help push products to customers. Will sort samples for next visit.', outcome: 'positive', products: [] },
+  { id: 'vis3', venueId: 'v17', date: '2024-11-12', type: 'visit', note: 'Spoke with Nick. Small store but willing. Damien (owner) asked to visit after midday Thursday 14/11 for product sample.', outcome: 'follow-up', products: [] },
+  { id: 'vis4', venueId: 'v19', date: '2024-10-31', type: 'tasting', note: 'Tasting booked for 8/11/24 10am-1pm but stock was not put into system in time. Need to rebook for January.', outcome: 'follow-up', products: ['p2','p3'] },
+  { id: 'vis5', venueId: 'v14', date: '2024-10-30', type: 'visit', note: 'Manager JJ was not in store. Left info with staff. Followed up with phone call & email 6/11.', outcome: 'follow-up', products: [] },
+  { id: 'vis6', venueId: 'v40', date: '2024-10-31', type: 'visit', note: 'Elderly gentleman at counter, said to email owner Charlie Grant. Suggested bringing a product owner/ambassador for the meeting. Charlie also owns Cellarbrations Pearsall and Liquor Barons Kalgoorlie.', outcome: 'follow-up', products: [] },
+  { id: 'vis7', venueId: 'v41', date: '2024-10-31', type: 'visit', note: 'Tuc (owner) not interested. Said customers mainly buy cheap spirits on sale. Price point is the core objection.', outcome: 'negative', products: [] },
+];
+
+const DEFAULT_ORDERS = [];
+
+const DEFAULT_STOCK = [
+  { productId: 'p1', totalUnits: 0, delivered: 0, returned: 0 },
+  { productId: 'p2', totalUnits: 0, delivered: 0, returned: 0 },
+  { productId: 'p3', totalUnits: 0, delivered: 0, returned: 0 },
+  { productId: 'p4', totalUnits: 0, delivered: 0, returned: 0 },
+  { productId: 'p5', totalUnits: 0, delivered: 0, returned: 0 },
+  { productId: 'p6', totalUnits: 0, delivered: 0, returned: 0 },
+  { productId: 'p7', totalUnits: 0, delivered: 0, returned: 0 },
+  { productId: 'p8', totalUnits: 0, delivered: 0, returned: 0 },
+];
+
+const DEFAULT_PLANNER = {
+  weekOf: '2025-01-20',
+  tuesday:  ['v14','v13','v11','v12','v15','v16'],
+  wednesday:['v6','v7','v8','v9','v30','v31','v32','v33'],
+  thursday: ['v17','v18','v19','v20'],
+};
+
+// ─── STORAGE HELPERS ──────────────────────────────────────────
+const Store = {
+  get(key, def) {
+    try { const v = localStorage.getItem('wr_' + key); return v ? JSON.parse(v) : def; }
+    catch { return def; }
+  },
+  set(key, val) {
+    try { localStorage.setItem('wr_' + key, JSON.stringify(val)); } catch {}
+  },
+  init() {
+    const SEED_VERSION = 3; // bump this to force re-seed on existing installs
+    if (Store.get('seedVersion') !== SEED_VERSION) {
+      Store.set('venues',      DEFAULT_VENUES);
+      Store.set('visits',      DEFAULT_VISITS);
+      Store.set('orders',      DEFAULT_ORDERS);
+      Store.set('stock',       DEFAULT_STOCK);
+      Store.set('products',    DEFAULT_PRODUCTS);
+      Store.set('planner',     DEFAULT_PLANNER);
+      Store.set('seedVersion', SEED_VERSION);
+    }
+  },
+  venues()   { return Store.get('venues',   DEFAULT_VENUES); },
+  visits()   { return Store.get('visits',   DEFAULT_VISITS); },
+  orders()   { return Store.get('orders',   DEFAULT_ORDERS); },
+  stock()    { return Store.get('stock',    DEFAULT_STOCK); },
+  products() { return Store.get('products', DEFAULT_PRODUCTS); },
+  planner()  { return Store.get('planner',  DEFAULT_PLANNER); },
+  saveVenues(v)   { Store.set('venues',   v); },
+  saveVisits(v)   { Store.set('visits',   v); },
+  saveOrders(v)   { Store.set('orders',   v); },
+  saveStock(v)    { Store.set('stock',    v); },
+  saveProducts(v) { Store.set('products', v); },
+  savePlanner(v)  { Store.set('planner',  v); },
+  nextId(prefix)  { return prefix + Date.now() + Math.random().toString(36).slice(2,6); },
+};
+
+</script>
+<script>
+// ─── WILD ROAD SPIRITS CRM — APP.JS ──────────────────────────
+
+// ─── Render namespace (must be declared first) ───────────────
+const Render = {};
+
+Store.init();
+
+// ─── ROUTER ──────────────────────────────────────────────────
+const Router = {
+  current: 'dashboard',
+  venueId: null,
+  go(view, venueId = null) {
+    this.current = view;
+    this.venueId = venueId;
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.querySelectorAll('.bottomnav-item').forEach(n => n.classList.remove('active'));
+    const el = document.getElementById('view-' + view);
+    if (el) el.classList.add('active');
+    const navKey = view === 'venue-detail' ? 'venues' : view;
+    const nav = document.querySelector(`.nav-item[data-view="${navKey}"]`);
+    if (nav) nav.classList.add('active');
+    const bnav = document.querySelector(`.bottomnav-item[data-view="${navKey}"]`);
+    if (bnav) bnav.classList.add('active');
+    Render[view] && Render[view](venueId);
+    document.getElementById('main').scrollTo(0, 0);
+  }
+};
+
+// ─── HELPERS ─────────────────────────────────────────────────
+const $ = (s, ctx = document) => ctx.querySelector(s);
+const $$ = (s, ctx = document) => [...ctx.querySelectorAll(s)];
+
+function fmt(date) {
+  if (!date) return '—';
+  const d = new Date(date);
+  return d.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+function fmtShort(date) {
+  if (!date) return '';
+  const d = new Date(date);
+  return d.toLocaleDateString('en-AU', { day: 'numeric', month: 'short' });
+}
+function daysSince(date) {
+  if (!date) return 999;
+  return Math.floor((Date.now() - new Date(date)) / 86400000);
+}
+function currency(n) { return '$' + Number(n).toLocaleString('en-AU', { minimumFractionDigits: 0 }); }
+
+function pillHtml(status) {
+  const s = STATUS_OPTIONS.find(o => o.value === status) || STATUS_OPTIONS[0];
+  return `<span class="pill ${s.pill}">${s.label}</span>`;
+}
+function typeTagHtml(type) {
+  const map = { 'Bar': 'tag-bar', 'Restaurant': 'tag-restaurant', 'Bottleshop': 'tag-bottleshop', 'Hotel': 'tag-hotel', 'Wine Store': 'tag-bottleshop' };
+  return `<span class="tag ${map[type] || 'tag-hotel'}">${type}</span>`;
+}
+function productName(id) { return Store.products().find(p => p.id === id)?.name || id; }
+function venueName(id) { return Store.venues().find(v => v.id === id)?.name || '—'; }
+
+function lastVisitDate(venueId) {
+  const visits = Store.visits().filter(v => v.venueId === venueId).sort((a,b) => b.date.localeCompare(a.date));
+  return visits[0]?.date || null;
+}
+
+function overdueVenues(days = 21) {
+  return Store.venues()
+    .filter(v => ['stocked','warm','reengage'].includes(v.status))
+    .map(v => ({ ...v, lastVisit: lastVisitDate(v.id) }))
+    .filter(v => daysSince(v.lastVisit) > days)
+    .sort((a,b) => daysSince(b.lastVisit) - daysSince(a.lastVisit));
+}
+
+// ─── MODAL ───────────────────────────────────────────────────
+const Modal = {
+  show(html, onReady) {
+    $('#modal-box').innerHTML = html;
+    $('#modal-overlay').classList.remove('hidden');
+    onReady && onReady($('#modal-box'));
+    $('#modal-overlay').onclick = e => { if (e.target === $('#modal-overlay')) Modal.hide(); };
+  },
+  hide() { $('#modal-overlay').classList.add('hidden'); },
+};
+
+// ─── RENDER: TODAY (mobile home) ──────────────────────────────
+Render.today = function() {
+  const venues = Store.venues();
+  const planner = Store.planner();
+  const venueMap = {};
+  venues.forEach(v => venueMap[v.id] = v);
+
+  const dayNames = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
+  const todayKey = dayNames[new Date().getDay()];
+  const plannerDays = ['tuesday','wednesday','thursday'];
+
+  let venueIds = [];
+  let heading = "Today's Run";
+  let subheading = new Date().toLocaleDateString('en-AU', { weekday:'long', day:'numeric', month:'long' });
+
+  if (plannerDays.includes(todayKey)) {
+    venueIds = planner[todayKey] || [];
+  } else {
+    // Monday/Friday/weekend - show overdue + upcoming next actions
+    heading = "Admin & Follow-ups";
+    const overdue = overdueVenues(14).map(v => v.id);
+    venueIds = overdue.slice(0, 8);
+  }
+
+  const todayVisits = Store.visits().filter(v => v.date === new Date().toISOString().slice(0,10)).map(v => v.venueId);
+  const doneCount = venueIds.filter(id => todayVisits.includes(id)).length;
+
+  document.getElementById('view-today').innerHTML = `
+    <div class="today-header">
+      <div class="today-date">${heading}</div>
+      <div class="today-sub">${subheading}</div>
+    </div>
+
+    ${venueIds.length ? `
+      <div class="today-progress">
+        <div class="today-progress-ring">${doneCount}/${venueIds.length}</div>
+        <div>
+          <div style="font-size:13px;font-weight:600">${doneCount === venueIds.length ? 'All done for today! 🎉' : `${venueIds.length - doneCount} venues to go`}</div>
+          <div style="font-size:11px;color:var(--text-muted)">Tap a venue to log a visit</div>
+        </div>
+      </div>
+    ` : ''}
+
+    ${venueIds.length ? venueIds.map(vid => {
+      const v = venueMap[vid];
+      if (!v) return '';
+      const isDone = todayVisits.includes(vid);
+      const lastV = lastVisitDate(vid);
+      return `
+        <div class="today-card ${isDone ? 'done' : ''}">
+          <div class="today-card-top" onclick="Router.go('venue-detail','${vid}')">
+            <div>
+              <div class="today-card-name">${v.name} ${isDone ? '✓' : ''}</div>
+              <div class="today-card-meta">${v.suburb || v.area} · ${v.type}</div>
+              <div class="today-card-meta">${pillHtml(v.status)} ${v.nextAction ? '· ' + v.nextAction : ''}</div>
+            </div>
+          </div>
+          <div class="today-card-actions">
+            <div class="today-btn today-btn-secondary" onclick="Router.go('venue-detail','${vid}')">View Profile</div>
+            <div class="today-btn today-btn-primary" onclick="showAddVisitModal('${vid}')">${isDone ? 'Add Note' : 'Log Visit'}</div>
+          </div>
+        </div>`;
+    }).join('') : `
+      <div class="empty-state" style="padding-top:60px">
+        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Nothing planned for today.<br>Add venues in the Week Planner.
+      </div>
+    `}
+
+    <div style="padding:0 16px 16px">
+      <div class="card" style="margin-top:4px">
+        <div class="card-title">Quick Stats</div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px">
+          <span style="color:var(--text-muted)">Active stockists</span>
+          <strong>${venues.filter(v=>v.status==='stocked').length} / 80</strong>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:13px">
+          <span style="color:var(--text-muted)">Overdue check-ins</span>
+          <strong style="color:var(--red)">${overdueVenues(21).length}</strong>
+        </div>
+      </div>
+    </div>
+  `;
+};
+
+// ─── RENDER: DASHBOARD ───────────────────────────────────────
+Render.dashboard = function() {
+  const venues = Store.venues();
+  const orders = Store.orders();
+  const stocked = venues.filter(v => v.status === 'stocked').length;
+  const warm    = venues.filter(v => v.status === 'warm').length;
+  const total   = venues.length;
+
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0,10);
+  const monthOrders = orders.filter(o => o.date >= monthStart);
+  const monthRevenue = monthOrders.reduce((s,o) => s + o.total, 0);
+  const lastMonthStart = new Date(now.getFullYear(), now.getMonth()-1, 1).toISOString().slice(0,10);
+  const lastMonthEnd   = monthStart;
+  const lastMonthRev   = orders.filter(o => o.date >= lastMonthStart && o.date < lastMonthEnd).reduce((s,o) => s + o.total, 0);
+  const revDiff = lastMonthRev ? Math.round((monthRevenue - lastMonthRev) / lastMonthRev * 100) : 0;
+
+  const overdue = overdueVenues(21).slice(0, 6);
+  const recentVisits = Store.visits().sort((a,b) => b.date.localeCompare(a.date)).slice(0, 6);
+  const goalPct = Math.min(100, Math.round(stocked / 80 * 100));
+
+  document.getElementById('view-dashboard').innerHTML = `
+    <div class="page-header">
+      <div>
+        <div class="page-title">Good morning, Jordan.</div>
+        <div class="page-sub">${new Date().toLocaleDateString('en-AU', { weekday:'long', day:'numeric', month:'long' })}</div>
+      </div>
+      <div class="page-actions">
+        <button class="btn btn-primary" onclick="Modal.show(quickVisitModalHtml()); setupQuickVisit()">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Log Visit
+        </button>
+      </div>
+    </div>
+
+    <div class="dashboard-grid">
+      <div class="stat-card">
+        <div class="stat-label">Active Stockists</div>
+        <div class="stat-value stat-sage">${stocked}</div>
+        <div class="stat-sub">of 80 goal</div>
+        <div class="goal-bar-wrap"><div class="goal-bar" style="width:${goalPct}%"></div></div>
+        <div class="goal-label"><span>${goalPct}% there</span><span>80 target</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Month Revenue</div>
+        <div class="stat-value stat-amber">${currency(monthRevenue)}</div>
+        <div class="stat-sub">${revDiff >= 0 ? '↑' : '↓'} ${Math.abs(revDiff)}% vs last month</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Warm Leads</div>
+        <div class="stat-value stat-blue">${warm}</div>
+        <div class="stat-sub">in active pipeline</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total Venues</div>
+        <div class="stat-value">${total}</div>
+        <div class="stat-sub">across ${AREAS.length} areas</div>
+      </div>
+    </div>
+
+    <div class="dashboard-lower">
+      <div class="card">
+        <div class="card-title">⚠ Overdue for a visit</div>
+        ${overdue.length ? overdue.map(v => `
+          <div class="overdue-item" onclick="Router.go('venue-detail','${v.id}')">
+            <div>
+              <div class="overdue-name">${v.name}</div>
+              <div class="overdue-meta">${v.area} · ${v.type}</div>
+            </div>
+            <div class="overdue-days">${v.lastVisit ? daysSince(v.lastVisit) + 'd ago' : 'Never visited'}</div>
+          </div>`).join('') : '<div class="empty-state">All accounts visited recently 🎉</div>'}
+      </div>
+      <div class="card">
+        <div class="card-title">Recent Activity</div>
+        ${recentVisits.map(vis => `
+          <div class="recent-item" onclick="Router.go('venue-detail','${vis.venueId}')">
+            <div>
+              <div class="overdue-name">${venueName(vis.venueId)}</div>
+              <div class="overdue-meta">${vis.type === 'tasting' ? '🥃 Tasting' : vis.type === 'order' ? '📦 Order' : '👣 Visit'} · ${fmt(vis.date)}</div>
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>
+  `;
+};
+
+// ─── RENDER: VENUES ──────────────────────────────────────────
+Render.venues = function() {
+  const venues = Store.venues();
+  const el = document.getElementById('view-venues');
+
+  el.innerHTML = `
+    <div class="page-header">
+      <div>
+        <div class="page-title">Venues</div>
+        <div class="page-sub">${venues.length} venues across Western Australia</div>
+      </div>
+      <div class="page-actions">
+        <button class="btn btn-primary" onclick="showAddVenueModal()">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Venue
+        </button>
+      </div>
+    </div>
+    <div class="venues-controls">
+      <div class="search-box">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="venueSearch" placeholder="Search venues, contacts, suburbs…" oninput="filterVenues()">
+      </div>
+      <select class="filter-select" id="filterStatus" onchange="filterVenues()">
+        <option value="">All Status</option>
+        ${STATUS_OPTIONS.map(s => `<option value="${s.value}">${s.label}</option>`).join('')}
+      </select>
+      <select class="filter-select" id="filterArea" onchange="filterVenues()">
+        <option value="">All Areas</option>
+        ${AREAS.map(a => `<option value="${a}">${a}</option>`).join('')}
+      </select>
+      <select class="filter-select" id="filterType" onchange="filterVenues()">
+        <option value="">All Types</option>
+        ${VENUE_TYPES.map(t => `<option value="${t}">${t}</option>`).join('')}
+      </select>
+    </div>
+    <div id="venueListContainer" class="venues-area-section"></div>
+  `;
+  filterVenues();
+};
+
+window.filterVenues = function() {
+  const q = ($('#venueSearch')?.value || '').toLowerCase();
+  const fStatus = $('#filterStatus')?.value || '';
+  const fArea   = $('#filterArea')?.value || '';
+  const fType   = $('#filterType')?.value || '';
+
+  let venues = Store.venues().filter(v => {
+    const matchQ = !q || v.name.toLowerCase().includes(q) || v.suburb?.toLowerCase().includes(q) ||
+      v.contacts?.some(c => c.name.toLowerCase().includes(q));
+    const matchS = !fStatus || v.status === fStatus;
+    const matchA = !fArea   || v.area === fArea;
+    const matchT = !fType   || v.type === fType;
+    return matchQ && matchS && matchA && matchT;
+  });
+
+  const byArea = {};
+  venues.forEach(v => { (byArea[v.area] = byArea[v.area] || []).push(v); });
+
+  const container = document.getElementById('venueListContainer');
+  if (!container) return;
+
+  if (!venues.length) {
+    container.innerHTML = '<div class="empty-state"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>No venues match your filters.</div>';
+    return;
+  }
+
+  container.innerHTML = AREAS.filter(a => byArea[a]?.length).map(area => `
+    <div class="area-header">
+      ${area}
+      <span class="area-count">${byArea[area].length}</span>
+    </div>
+    ${byArea[area].map(v => {
+      const lastV = lastVisitDate(v.id);
+      const contact = v.contacts?.[0];
+      return `
+        <div class="venue-row" onclick="Router.go('venue-detail','${v.id}')">
+          <div>
+            <div class="venue-name">${v.name}</div>
+            <div class="venue-contact">${contact?.name || '—'}${contact?.phone ? ' · ' + contact.phone : ''}</div>
+          </div>
+          <div>${typeTagHtml(v.type)}</div>
+          <div>${pillHtml(v.status)}</div>
+          <div class="venue-last-seen">${lastV ? fmt(lastV) : 'Not visited'}</div>
+          <div class="venue-row-actions">
+            <button class="btn btn-secondary" style="padding:5px 10px;font-size:11px" onclick="event.stopPropagation();quickLogVisit('${v.id}')">Log Visit</button>
+          </div>
+        </div>`;
+    }).join('')}
+  `).join('');
+};
+
+// ─── RENDER: VENUE DETAIL ─────────────────────────────────────
+Render['venue-detail'] = function(venueId) {
+  const venues = Store.venues();
+  const v = venues.find(x => x.id === venueId);
+  if (!v) return Router.go('venues');
+
+  const visits = Store.visits().filter(x => x.venueId === venueId).sort((a,b) => b.date.localeCompare(a.date));
+  const orders = Store.orders().filter(x => x.venueId === venueId).sort((a,b) => b.date.localeCompare(a.date));
+  const totalSpend = orders.reduce((s,o) => s + o.total, 0);
+
+  const el = document.getElementById('view-venue-detail');
+  el.innerHTML = `
+    <div class="venue-detail-header">
+      <div class="venue-detail-back" onclick="Router.go('venues')">
+        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+        Back to Venues
+      </div>
+      <div class="venue-detail-title">${v.name}</div>
+      <div class="venue-detail-meta">
+        ${pillHtml(v.status)}
+        ${typeTagHtml(v.type)}
+        <span class="sep">·</span>
+        <span>${v.area}</span>
+        <span class="sep">·</span>
+        <span>${v.suburb || v.address}</span>
+        <div style="margin-left:auto;display:flex;gap:8px">
+          <button class="btn btn-secondary" onclick="showEditVenueModal('${v.id}')">Edit</button>
+          <button class="btn btn-primary" onclick="showAddVisitModal('${v.id}')">
+            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Log Visit
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="venue-detail-body">
+      <div class="venue-detail-main">
+        <div class="tabs">
+          <div class="tab active" onclick="switchTab(this,'tab-activity')">Activity</div>
+          <div class="tab" onclick="switchTab(this,'tab-orders')">Orders & Stock</div>
+          <div class="tab" onclick="switchTab(this,'tab-notes')">Notes</div>
+        </div>
+
+        <div id="tab-activity" class="tab-content active">
+          ${visits.length ? visits.map(vis => `
+            <div class="visit-entry ${vis.type}">
+              <div class="visit-date">${fmt(vis.date)} · ${vis.type === 'tasting' ? '🥃 Tasting' : vis.type === 'order' ? '📦 Order/Delivery' : '👣 Visit'}</div>
+              <div class="visit-note">${vis.note}</div>
+              ${vis.products?.length ? `<div class="visit-tags">${vis.products.map(pid => `<span class="visit-tag">${productName(pid)}</span>`).join('')}</div>` : ''}
+            </div>`).join('') : '<div class="empty-state">No visits logged yet.</div>'}
+        </div>
+
+        <div id="tab-orders" class="tab-content">
+          <div style="margin-bottom:16px">
+            <button class="btn btn-primary" onclick="showAddOrderModal('${v.id}')">
+              <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Record Delivery / Sale
+            </button>
+          </div>
+          ${orders.length ? `
+            <div class="order-row order-row-header">
+              <span>Product</span><span>Date</span><span>Qty</span><span>Value</span>
+            </div>
+            ${orders.map(o => `
+              <div class="order-row">
+                <span>${productName(o.product)}</span>
+                <span style="color:var(--text-muted)">${fmt(o.date)}</span>
+                <span>${o.qty} btls</span>
+                <span style="color:var(--sage);font-weight:600">${currency(o.total)}</span>
+              </div>`).join('')}
+            <div style="padding:12px 12px 0;text-align:right;font-size:13px;color:var(--text-muted)">
+              Total: <strong style="color:var(--text)">${currency(totalSpend)}</strong>
+            </div>
+          ` : '<div class="empty-state">No orders recorded yet.</div>'}
+        </div>
+
+        <div id="tab-notes" class="tab-content">
+          <div class="card" style="margin-bottom:16px">
+            <div class="card-title">Account Notes</div>
+            <div style="font-size:13px;line-height:1.7;color:var(--text-muted);margin-bottom:14px">${v.notes || 'No notes yet.'}</div>
+            <button class="btn btn-secondary" onclick="showEditNotesModal('${v.id}')">Edit Notes</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="venue-detail-side">
+        ${v.nextAction ? `
+          <div class="next-action-box">
+            <div class="next-action-label">Next Action</div>
+            <div class="next-action-text">${v.nextAction}</div>
+            ${v.nextActionDate ? `<div class="next-action-due">📅 ${fmt(v.nextActionDate)}</div>` : ''}
+          </div>` : ''}
+
+        <div class="card">
+          <div class="card-title">Contacts</div>
+          ${(v.contacts || []).map(c => `
+            <div class="contact-entry">
+              <div class="contact-name">${c.name || 'Unknown'}</div>
+              <div class="contact-role">${c.role || ''}</div>
+              ${c.phone ? `<div class="contact-detail"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.95 12a19.79 19.79 0 01-3.07-8.67A2 2 0 012.86 1h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L7.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg><a href="tel:${c.phone}">${c.phone}</a></div>` : ''}
+              ${c.email ? `<div class="contact-detail"><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg><a href="mailto:${c.email}">${c.email}</a></div>` : ''}
+            </div>`).join('') || '<div style="font-size:12px;color:var(--text-dim)">No contacts added.</div>'}
+          <button class="btn btn-secondary" style="margin-top:8px;font-size:12px" onclick="showAddContactModal('${v.id}')">+ Add Contact</button>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Products Stocked</div>
+          <div class="products-grid">
+            ${Store.products().map(p => `
+              <div class="product-chip ${(v.productsStocked || []).includes(p.id) ? 'active' : ''}">
+                <span class="product-dot"></span>${p.name}
+              </div>`).join('')}
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Implementation</div>
+          <div class="tag-row">
+            ${(v.implementation || []).map(i => `<span class="tag tag-bar" style="font-size:11px">${i}</span>`).join('') || '<span style="font-size:12px;color:var(--text-dim)">Not recorded</span>'}
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Account Summary</div>
+          <div style="display:flex;flex-direction:column;gap:8px;font-size:13px">
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--text-muted)">Total orders</span><strong>${orders.length}</strong></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--text-muted)">Total spend</span><strong style="color:var(--sage)">${currency(totalSpend)}</strong></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--text-muted)">Last visit</span><strong>${fmt(lastVisitDate(v.id))}</strong></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--text-muted)">Total visits</span><strong>${visits.length}</strong></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+};
+
+window.switchTab = function(tabEl, contentId) {
+  const parent = tabEl.closest('.venue-detail-main') || tabEl.closest('.card') || document;
+  $$('.tab', tabEl.parentElement).forEach(t => t.classList.remove('active'));
+  tabEl.classList.add('active');
+  $$('.tab-content').forEach(c => c.classList.remove('active'));
+  document.getElementById(contentId)?.classList.add('active');
+};
+
+// ─── RENDER: WEEK PLANNER ─────────────────────────────────────
+Render.planner = function() {
+  const planner = Store.planner();
+  const venues = Store.venues();
+  const venueMap = {};
+  venues.forEach(v => venueMap[v.id] = v);
+
+  const days = [
+    { key: 'tuesday',  label: 'Tuesday',  sub: 'Primary visits — high volume' },
+    { key: 'wednesday',label: 'Wednesday', sub: 'Primary visits — highest weighting' },
+    { key: 'thursday', label: 'Thursday',  sub: 'Follow-ups & missed buyers' },
+  ];
+
+  document.getElementById('view-planner').innerHTML = `
+    <div class="page-header">
+      <div>
+        <div class="page-title">Week Planner</div>
+        <div class="page-sub">Week of ${fmt(planner.weekOf)}</div>
+      </div>
+      <div class="page-actions">
+        <button class="btn btn-secondary" onclick="showPlannerWeekModal()">Change Week</button>
+        <button class="btn btn-primary" onclick="showAddToPlannerModal()">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Venue
+        </button>
+      </div>
+    </div>
+    <div class="planner-grid">
+      ${days.map(day => `
+        <div class="planner-day">
+          <div class="planner-day-header">
+            ${day.label}
+            <span class="planner-day-label">${(planner[day.key] || []).length} venues</span>
+          </div>
+          <div style="font-size:11px;color:var(--text-dim);margin-bottom:10px">${day.sub}</div>
+          ${(planner[day.key] || []).map(vid => {
+            const v = venueMap[vid];
+            if (!v) return '';
+            return `
+              <div class="planner-slot" onclick="Router.go('venue-detail','${vid}')">
+                <div class="planner-slot-name">${v.name}</div>
+                <div class="planner-slot-area">${v.suburb || v.area} · ${v.type}</div>
+                <div style="margin-top:6px;display:flex;gap:6px;align-items:center">
+                  ${pillHtml(v.status)}
+                  <button class="btn" style="padding:2px 8px;font-size:10px;background:var(--bg-input);border:1px solid var(--border);margin-left:auto;color:var(--text-muted)" onclick="event.stopPropagation();removePlannerVenue('${day.key}','${vid}')">Remove</button>
+                </div>
+              </div>`;
+          }).join('')}
+          <div class="planner-add" onclick="showAddToPlannerModal('${day.key}')">+ Add venue to ${day.label}</div>
+        </div>`).join('')}
+    </div>
+    <div style="padding:0 32px 32px">
+      <div class="card" style="margin-top:0">
+        <div class="card-title">Overdue — consider adding to this week</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
+          ${overdueVenues(14).slice(0,8).map(v => `
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--bg-raised);border-radius:var(--radius);cursor:pointer;border:1px solid var(--border)" onclick="Router.go('venue-detail','${v.id}')">
+              <span style="font-size:13px;font-weight:500">${v.name}</span>
+              <span style="font-size:11px;color:var(--red)">${v.lastVisit ? daysSince(v.lastVisit) + 'd ago' : 'Never'}</span>
+            </div>`).join('') || '<span style="font-size:13px;color:var(--text-dim)">No overdue venues — great work!</span>'}
+        </div>
+      </div>
+    </div>
+  `;
+};
+
+window.removePlannerVenue = function(day, venueId) {
+  const p = Store.planner();
+  p[day] = (p[day] || []).filter(id => id !== venueId);
+  Store.savePlanner(p);
+  Render.planner();
+};
+
+// ─── RENDER: STOCK ────────────────────────────────────────────
+Render.stock = function() {
+  const stock = Store.stock();
+  const orders = Store.orders();
+  const deliveries = Store.visits().filter(v => v.type === 'order');
+
+  document.getElementById('view-stock').innerHTML = `
+    <div class="page-header">
+      <div>
+        <div class="page-title">Stock</div>
+        <div class="page-sub">Inventory levels and delivery log</div>
+      </div>
+      <div class="page-actions">
+        <button class="btn btn-primary" onclick="showDeliveryModal()">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Record Drop
+        </button>
+      </div>
+    </div>
+    <div class="stock-grid">
+      ${Store.products().map(p => {
+        const s = stock.find(x => x.productId === p.id) || { totalUnits: 0, delivered: 0 };
+        const sold = orders.filter(o => o.product === p.id).reduce((sum, o) => sum + o.qty, 0);
+        const remaining = s.totalUnits;
+        const pct = s.delivered ? Math.min(100, Math.round(remaining / (s.delivered * 0.5) * 100)) : 0;
+        const barClass = pct < 20 ? 'low' : pct < 40 ? 'warn' : '';
+        return `
+          <div class="card stock-card">
+            <div class="stock-product-name">${p.name}</div>
+            <div style="font-size:11px;color:var(--text-dim);margin-bottom:8px">${p.type} · RRP ${currency(p.rrp)}</div>
+            <div class="stock-big ${pct < 20 ? 'stat-red' : pct < 40 ? 'stat-accent' : 'stat-sage'}">${remaining}</div>
+            <div style="font-size:11px;color:var(--text-muted)">bottles remaining</div>
+            <div class="stock-bar-wrap"><div class="stock-bar ${barClass}" style="width:${pct}%"></div></div>
+            <div class="stock-numbers">
+              <span>${sold} sold total</span>
+              <span>${s.delivered} delivered</span>
+            </div>
+          </div>`;
+      }).join('')}
+    </div>
+
+    <div class="stock-log">
+      <div class="card">
+        <div class="card-title">Delivery & Sale Log</div>
+        <div class="delivery-row delivery-header-row"><span>Venue</span><span>Product</span><span>Date</span><span>Qty</span><span>Value</span></div>
+        ${Store.orders().sort((a,b) => b.date.localeCompare(a.date)).slice(0,20).map(o => `
+          <div class="delivery-row">
+            <span style="font-weight:500;cursor:pointer" onclick="Router.go('venue-detail','${o.venueId}')">${venueName(o.venueId)}</span>
+            <span style="color:var(--text-muted)">${productName(o.product)}</span>
+            <span style="color:var(--text-dim)">${fmt(o.date)}</span>
+            <span>${o.qty}</span>
+            <span style="color:var(--sage);font-weight:600">${currency(o.total)}</span>
+          </div>`).join('')}
+      </div>
+    </div>
+  `;
+};
+
+// ─── RENDER: METRICS ─────────────────────────────────────────
+Render.metrics = function() {
+  const orders = Store.orders();
+  const venues = Store.venues();
+
+  const now = new Date();
+  const months = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push({
+      label: d.toLocaleString('en-AU', { month: 'short' }),
+      start: d.toISOString().slice(0,10),
+      end: new Date(d.getFullYear(), d.getMonth()+1, 0).toISOString().slice(0,10),
+    });
+  }
+  const monthlyRevs = months.map(m => orders.filter(o => o.date >= m.start && o.date <= m.end).reduce((s,o) => s + o.total, 0));
+
+  const thisMonth = months[months.length-1];
+  const lastMonth = months[months.length-2];
+  const thisRev = monthlyRevs[monthlyRevs.length-1];
+  const lastRev = monthlyRevs[monthlyRevs.length-2];
+  const totalOrders = orders.length;
+  const activeAccounts = venues.filter(v => v.status === 'stocked').length;
+
+  // top venues by revenue
+  const byVenue = {};
+  orders.forEach(o => { byVenue[o.venueId] = (byVenue[o.venueId] || 0) + o.total; });
+  const topVenues = Object.entries(byVenue).sort((a,b) => b[1]-a[1]).slice(0,8);
+
+  // by product
+  const byProduct = {};
+  orders.forEach(o => { byProduct[o.product] = (byProduct[o.product] || 0) + o.total; });
+
+  // cashflow projection (avg monthly * 1.1 optimistic)
+  const avgMonthly = monthlyRevs.slice(0,-1).reduce((s,v) => s+v, 0) / Math.max(1, monthlyRevs.length-1);
+  const projection30 = Math.round(avgMonthly * 0.9);
+  const projection60 = Math.round(avgMonthly * 1.8);
+
+  document.getElementById('view-metrics').innerHTML = `
+    <div class="page-header">
+      <div>
+        <div class="page-title">Metrics</div>
+        <div class="page-sub">Sales performance and cashflow overview</div>
+      </div>
+    </div>
+    <div class="metrics-grid">
+      <div class="stat-card">
+        <div class="stat-label">This Month</div>
+        <div class="stat-value stat-sage">${currency(thisRev)}</div>
+        <div class="stat-sub">${lastRev ? (thisRev >= lastRev ? '↑' : '↓') + ' ' + Math.abs(Math.round((thisRev-lastRev)/lastRev*100)) + '% vs last month' : 'First month on record'}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Last Month</div>
+        <div class="stat-value">${currency(lastRev)}</div>
+        <div class="stat-sub">total revenue</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Active Stockists</div>
+        <div class="stat-value stat-amber">${activeAccounts}</div>
+        <div class="stat-sub">of 80 goal (${Math.round(activeAccounts/80*100)}%)</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total Orders</div>
+        <div class="stat-value stat-blue">${totalOrders}</div>
+        <div class="stat-sub">all time</div>
+      </div>
+    </div>
+    <div class="metrics-lower">
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="card">
+          <div class="card-title">Monthly Revenue — Last 6 Months</div>
+          <div class="chart-wrap">
+            <canvas id="revenueChart"></canvas>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Revenue by Product</div>
+          <div class="chart-wrap" style="height:160px">
+            <canvas id="productChart"></canvas>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="card">
+          <div class="card-title">Top Accounts by Revenue</div>
+          ${topVenues.map(([vid, rev], i) => `
+            <div class="leaderboard-row" onclick="Router.go('venue-detail','${vid}')" style="cursor:pointer">
+              <span class="leaderboard-rank">${i+1}</span>
+              <span class="leaderboard-name">${venueName(vid)}</span>
+              <span class="leaderboard-val">${currency(rev)}</span>
+            </div>`).join('')}
+        </div>
+        <div class="card">
+          <div class="card-title">Cashflow Projection</div>
+          <div class="cashflow-row"><span class="cashflow-label">Next 30 days</span><span class="cashflow-val positive">${currency(projection30)}</span></div>
+          <div class="cashflow-row"><span class="cashflow-label">Next 60 days</span><span class="cashflow-val positive">${currency(projection60)}</span></div>
+          <div class="cashflow-row"><span class="cashflow-label">Monthly avg (6mo)</span><span class="cashflow-val">${currency(Math.round(avgMonthly))}</span></div>
+          <div style="font-size:11px;color:var(--text-dim);margin-top:10px">Based on avg reorder cycle of active accounts.</div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Draw charts
+  drawBarChart('revenueChart', months.map(m => m.label), monthlyRevs);
+  drawDonutChart('productChart', Store.products().map(p => p.name), Store.products().map(p => byProduct[p.id] || 0));
+};
+
+function drawBarChart(canvasId, labels, data) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.parentElement.clientWidth;
+  const H = canvas.parentElement.clientHeight;
+  canvas.width = W; canvas.height = H;
+  const max = Math.max(...data, 1);
+  const pad = { t:10, r:10, b:30, l:50 };
+  const cw = W - pad.l - pad.r;
+  const ch = H - pad.t - pad.b;
+  ctx.clearRect(0, 0, W, H);
+  const barW = cw / labels.length * 0.6;
+  const gap = cw / labels.length;
+  labels.forEach((label, i) => {
+    const x = pad.l + i * gap + gap/2 - barW/2;
+    const barH = (data[i] / max) * ch;
+    const y = pad.t + ch - barH;
+    ctx.fillStyle = i === labels.length-1 ? '#C4692A' : '#3D3832';
+    ctx.beginPath();
+    ctx.roundRect(x, y, barW, barH, 4);
+    ctx.fill();
+    ctx.fillStyle = '#6B6662';
+    ctx.font = '11px Inter';
+    ctx.textAlign = 'center';
+    ctx.fillText(label, x + barW/2, H - 8);
+    if (data[i] > 0) {
+      ctx.fillStyle = '#9A9390';
+      ctx.fillText('$' + (data[i]/1000).toFixed(1) + 'k', x + barW/2, y - 4);
+    }
+  });
+}
+
+function drawDonutChart(canvasId, labels, data) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.parentElement.clientWidth;
+  const H = canvas.parentElement.clientHeight;
+  canvas.width = W; canvas.height = H;
+  const colors = ['#C4692A','#7A9E7E','#4A7AC4','#C4A84A','#9B59B6'];
+  const total = data.reduce((s,v) => s+v, 0);
+  if (!total) return;
+  const cx = H/2 + 10, cy = H/2, r = H/2 - 14, innerR = r * 0.55;
+  let angle = -Math.PI/2;
+  data.forEach((val, i) => {
+    if (!val) return;
+    const slice = (val / total) * Math.PI * 2;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, r, angle, angle + slice);
+    ctx.closePath();
+    ctx.fillStyle = colors[i % colors.length];
+    ctx.fill();
+    angle += slice;
+  });
+  ctx.beginPath();
+  ctx.arc(cx, cy, innerR, 0, Math.PI*2);
+  ctx.fillStyle = '#252220';
+  ctx.fill();
+  // legend
+  const legX = H + 20;
+  labels.forEach((label, i) => {
+    if (!data[i]) return;
+    const y = 20 + i * 22;
+    ctx.fillStyle = colors[i % colors.length];
+    ctx.fillRect(legX, y - 7, 10, 10);
+    ctx.fillStyle = '#9A9390';
+    ctx.font = '11px Inter';
+    ctx.textAlign = 'left';
+    ctx.fillText(label, legX + 14, y + 2);
+    ctx.fillStyle = '#F5F0E8';
+    ctx.fillText('$' + data[i].toLocaleString(), legX + 14, y + 14);
+  });
+}
+
+// ─── MODALS ───────────────────────────────────────────────────
+window.showAddVenueModal = function() {
+  Modal.show(`
+    <div class="modal-title">Add New Venue</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Venue Name*</label><input class="form-input" id="m-name" placeholder="e.g. The Loft Bar"></div>
+      <div class="form-group"><label class="form-label">Type*</label><select class="form-select" id="m-type">${VENUE_TYPES.map(t=>`<option>${t}</option>`).join('')}</select></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Area*</label><select class="form-select" id="m-area">${AREAS.map(a=>`<option>${a}</option>`).join('')}</select></div>
+      <div class="form-group"><label class="form-label">Status</label><select class="form-select" id="m-status">${STATUS_OPTIONS.map(s=>`<option value="${s.value}">${s.label}</option>`).join('')}</select></div>
+    </div>
+    <div class="form-group"><label class="form-label">Address</label><input class="form-input" id="m-address" placeholder="Street address"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Suburb</label><input class="form-input" id="m-suburb" placeholder="Suburb"></div>
+      <div class="form-group"><label class="form-label">Contact Name</label><input class="form-input" id="m-cname" placeholder="Contact name"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Phone</label><input class="form-input" id="m-phone" placeholder="04xx xxx xxx"></div>
+      <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="m-email" placeholder="email@venue.com"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Contact Role</label><input class="form-input" id="m-crole" placeholder="e.g. Manager, Owner"></div>
+    <div class="form-group"><label class="form-label">Notes</label><textarea class="form-textarea" id="m-notes" placeholder="Any relevant context about this venue…"></textarea></div>
+    <div class="form-group"><label class="form-label">Next Action</label><input class="form-input" id="m-action" placeholder="e.g. Book tasting session"></div>
+    <div class="form-group"><label class="form-label">Next Action Date</label><input class="form-input" type="date" id="m-actiondate"></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="Modal.hide()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveNewVenue()">Add Venue</button>
+    </div>
+  `);
+};
+
+window.saveNewVenue = function() {
+  const name = $('#m-name')?.value?.trim();
+  if (!name) return alert('Venue name is required.');
+  const venues = Store.venues();
+  const v = {
+    id: Store.nextId('v'),
+    name,
+    type: $('#m-type').value,
+    area: $('#m-area').value,
+    status: $('#m-status').value,
+    address: $('#m-address').value,
+    suburb: $('#m-suburb').value,
+    contacts: [{ name: $('#m-cname').value, role: $('#m-crole').value, phone: $('#m-phone').value, email: $('#m-email').value }],
+    productsStocked: [],
+    implementation: [],
+    notes: $('#m-notes').value,
+    nextAction: $('#m-action').value,
+    nextActionDate: $('#m-actiondate').value,
+  };
+  venues.push(v);
+  Store.saveVenues(venues);
+  Modal.hide();
+  Router.go('venue-detail', v.id);
+};
+
+window.showEditVenueModal = function(venueId) {
+  const v = Store.venues().find(x => x.id === venueId);
+  if (!v) return;
+  Modal.show(`
+    <div class="modal-title">Edit ${v.name}</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Venue Name</label><input class="form-input" id="m-name" value="${v.name}"></div>
+      <div class="form-group"><label class="form-label">Type</label><select class="form-select" id="m-type">${VENUE_TYPES.map(t=>`<option ${t===v.type?'selected':''}>${t}</option>`).join('')}</select></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Area</label><select class="form-select" id="m-area">${AREAS.map(a=>`<option ${a===v.area?'selected':''}>${a}</option>`).join('')}</select></div>
+      <div class="form-group"><label class="form-label">Status</label><select class="form-select" id="m-status">${STATUS_OPTIONS.map(s=>`<option value="${s.value}" ${s.value===v.status?'selected':''}>${s.label}</option>`).join('')}</select></div>
+    </div>
+    <div class="form-group"><label class="form-label">Address</label><input class="form-input" id="m-address" value="${v.address||''}"></div>
+    <div class="form-group"><label class="form-label">Suburb</label><input class="form-input" id="m-suburb" value="${v.suburb||''}"></div>
+    <div class="form-group"><label class="form-label">Next Action</label><input class="form-input" id="m-action" value="${v.nextAction||''}"></div>
+    <div class="form-group"><label class="form-label">Next Action Date</label><input class="form-input" type="date" id="m-actiondate" value="${v.nextActionDate||''}"></div>
+    <div class="form-group"><label class="form-label">Products Stocked</label>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px">
+        ${Store.products().map(p => `<label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer"><input type="checkbox" value="${p.id}" ${(v.productsStocked||[]).includes(p.id)?'checked':''} style="accent-color:var(--amber)">${p.name}</label>`).join('')}
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-danger" onclick="deleteVenue('${v.id}')">Delete</button>
+      <button class="btn btn-secondary" onclick="Modal.hide()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEditVenue('${v.id}')">Save Changes</button>
+    </div>
+  `);
+};
+
+window.saveEditVenue = function(venueId) {
+  const venues = Store.venues();
+  const idx = venues.findIndex(x => x.id === venueId);
+  if (idx === -1) return;
+  venues[idx] = {
+    ...venues[idx],
+    name: $('#m-name').value,
+    type: $('#m-type').value,
+    area: $('#m-area').value,
+    status: $('#m-status').value,
+    address: $('#m-address').value,
+    suburb: $('#m-suburb').value,
+    nextAction: $('#m-action').value,
+    nextActionDate: $('#m-actiondate').value,
+    productsStocked: [...document.querySelectorAll('#modal-box input[type=checkbox]:checked')].map(c => c.value),
+  };
+  Store.saveVenues(venues);
+  Modal.hide();
+  Router.go('venue-detail', venueId);
+};
+
+window.deleteVenue = function(venueId) {
+  if (!confirm('Delete this venue? This cannot be undone.')) return;
+  Store.saveVenues(Store.venues().filter(v => v.id !== venueId));
+  Modal.hide();
+  Router.go('venues');
+};
+
+window.showAddVisitModal = function(venueId) {
+  Modal.show(`
+    <div class="modal-title">Log Visit</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Date</label><input class="form-input" type="date" id="m-date" value="${new Date().toISOString().slice(0,10)}"></div>
+      <div class="form-group"><label class="form-label">Type</label>
+        <select class="form-select" id="m-type">
+          <option value="visit">Visit</option>
+          <option value="tasting">Tasting</option>
+          <option value="order">Order / Delivery</option>
+          <option value="call">Phone Call</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group"><label class="form-label">Notes</label><textarea class="form-textarea" id="m-note" placeholder="What happened? Who did you speak to? Any outcomes…" style="min-height:100px"></textarea></div>
+    <div class="form-group"><label class="form-label">Products discussed / sampled</label>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px">
+        ${Store.products().map(p => `<label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer"><input type="checkbox" value="${p.id}" style="accent-color:var(--amber)">${p.name}</label>`).join('')}
+      </div>
+    </div>
+    <div class="form-group"><label class="form-label">Outcome</label>
+      <select class="form-select" id="m-outcome">
+        <option value="positive">Positive — moving forward</option>
+        <option value="follow-up">Follow-up needed</option>
+        <option value="negative">Not interested</option>
+        <option value="neutral">Neutral / just a check-in</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="Modal.hide()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveVisit('${venueId}')">Save</button>
+    </div>
+  `);
+};
+
+window.saveVisit = function(venueId) {
+  const visits = Store.visits();
+  visits.push({
+    id: Store.nextId('vis'),
+    venueId,
+    date: $('#m-date').value,
+    type: $('#m-type').value,
+    note: $('#m-note').value,
+    outcome: $('#m-outcome').value,
+    products: [...document.querySelectorAll('#modal-box input[type=checkbox]:checked')].map(c => c.value),
+  });
+  Store.saveVisits(visits);
+  Modal.hide();
+  Router.go('venue-detail', venueId);
+};
+
+window.showAddOrderModal = function(venueId) {
+  Modal.show(`
+    <div class="modal-title">Record Delivery / Sale</div>
+    <div class="form-group"><label class="form-label">Date</label><input class="form-input" type="date" id="m-date" value="${new Date().toISOString().slice(0,10)}"></div>
+    <div class="form-group"><label class="form-label">Product</label>
+      <select class="form-select" id="m-product">
+        ${Store.products().map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
+      </select>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Quantity (bottles)</label><input class="form-input" type="number" id="m-qty" value="6" min="1"></div>
+      <div class="form-group"><label class="form-label">Unit Price (ex GST)</label><input class="form-input" type="number" id="m-price" value="65"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Notes</label><input class="form-input" id="m-note" placeholder="Optional order notes"></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="Modal.hide()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveOrder('${venueId}')">Record</button>
+    </div>
+  `);
+};
+
+window.saveOrder = function(venueId) {
+  const qty = parseInt($('#m-qty').value) || 0;
+  const price = parseFloat($('#m-price').value) || 0;
+  const orders = Store.orders();
+  orders.push({
+    id: Store.nextId('o'),
+    venueId,
+    date: $('#m-date').value,
+    product: $('#m-product').value,
+    qty,
+    unitPrice: price,
+    total: qty * price,
+    type: 'sale',
+  });
+  Store.saveOrders(orders);
+  // update stock
+  const stock = Store.stock();
+  const productId = $('#m-product').value;
+  const si = stock.findIndex(s => s.productId === productId);
+  if (si > -1) stock[si].totalUnits = Math.max(0, stock[si].totalUnits - qty);
+  Store.saveStock(stock);
+  Modal.hide();
+  Router.go('venue-detail', venueId);
+};
+
+window.showDeliveryModal = function() {
+  Modal.show(`
+    <div class="modal-title">Record Stock Drop</div>
+    <div class="form-group"><label class="form-label">Date</label><input class="form-input" type="date" id="m-date" value="${new Date().toISOString().slice(0,10)}"></div>
+    <div class="form-group"><label class="form-label">Product</label>
+      <select class="form-select" id="m-product">
+        ${Store.products().map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
+      </select>
+    </div>
+    <div class="form-group"><label class="form-label">Bottles Added to Inventory</label><input class="form-input" type="number" id="m-qty" value="24" min="1"></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="Modal.hide()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveStockDrop()">Record Drop</button>
+    </div>
+  `);
+};
+
+window.saveStockDrop = function() {
+  const qty = parseInt($('#m-qty').value) || 0;
+  const productId = $('#m-product').value;
+  const stock = Store.stock();
+  const si = stock.findIndex(s => s.productId === productId);
+  if (si > -1) { stock[si].totalUnits += qty; stock[si].delivered += qty; }
+  Store.saveStock(stock);
+  Modal.hide();
+  Render.stock();
+};
+
+window.showAddContactModal = function(venueId) {
+  Modal.show(`
+    <div class="modal-title">Add Contact</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Name</label><input class="form-input" id="m-cname" placeholder="Full name"></div>
+      <div class="form-group"><label class="form-label">Role</label><input class="form-input" id="m-crole" placeholder="Manager, Owner…"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Phone</label><input class="form-input" id="m-phone" placeholder="04xx xxx xxx"></div>
+      <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="m-email" placeholder="email@venue.com"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="Modal.hide()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveContact('${venueId}')">Add</button>
+    </div>
+  `);
+};
+
+window.saveContact = function(venueId) {
+  const venues = Store.venues();
+  const idx = venues.findIndex(v => v.id === venueId);
+  if (idx === -1) return;
+  venues[idx].contacts = venues[idx].contacts || [];
+  venues[idx].contacts.push({ name: $('#m-cname').value, role: $('#m-crole').value, phone: $('#m-phone').value, email: $('#m-email').value });
+  Store.saveVenues(venues);
+  Modal.hide();
+  Router.go('venue-detail', venueId);
+};
+
+window.showEditNotesModal = function(venueId) {
+  const v = Store.venues().find(x => x.id === venueId);
+  Modal.show(`
+    <div class="modal-title">Account Notes</div>
+    <div class="form-group"><textarea class="form-textarea" id="m-notes" style="min-height:160px">${v?.notes || ''}</textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="Modal.hide()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveNotes('${venueId}')">Save</button>
+    </div>
+  `);
+};
+
+window.saveNotes = function(venueId) {
+  const venues = Store.venues();
+  const idx = venues.findIndex(v => v.id === venueId);
+  if (idx > -1) { venues[idx].notes = $('#m-notes').value; Store.saveVenues(venues); }
+  Modal.hide();
+  Router.go('venue-detail', venueId);
+};
+
+window.showAddToPlannerModal = function(day = '') {
+  const venues = Store.venues();
+  Modal.show(`
+    <div class="modal-title">Add to Week Planner</div>
+    <div class="form-group"><label class="form-label">Day</label>
+      <select class="form-select" id="m-day">
+        <option value="tuesday"  ${day==='tuesday'?'selected':''}>Tuesday</option>
+        <option value="wednesday"${day==='wednesday'?'selected':''}>Wednesday</option>
+        <option value="thursday" ${day==='thursday'?'selected':''}>Thursday</option>
+      </select>
+    </div>
+    <div class="form-group"><label class="form-label">Venue</label>
+      <select class="form-select" id="m-venue">
+        ${venues.map(v => `<option value="${v.id}">${v.name} — ${v.suburb||v.area}</option>`).join('')}
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="Modal.hide()">Cancel</button>
+      <button class="btn btn-primary" onclick="savePlannerAdd()">Add</button>
+    </div>
+  `);
+};
+
+window.savePlannerAdd = function() {
+  const day = $('#m-day').value;
+  const venueId = $('#m-venue').value;
+  const p = Store.planner();
+  p[day] = p[day] || [];
+  if (!p[day].includes(venueId)) p[day].push(venueId);
+  Store.savePlanner(p);
+  Modal.hide();
+  Render.planner();
+};
+
+window.showPlannerWeekModal = function() {
+  const p = Store.planner();
+  Modal.show(`
+    <div class="modal-title">Change Week</div>
+    <div class="form-group"><label class="form-label">Week starting (Monday)</label>
+      <input class="form-input" type="date" id="m-week" value="${p.weekOf}">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="Modal.hide()">Cancel</button>
+      <button class="btn btn-primary" onclick="savePlannerWeek()">Update</button>
+    </div>
+  `);
+};
+
+window.savePlannerWeek = function() {
+  const p = Store.planner();
+  p.weekOf = $('#m-week').value;
+  Store.savePlanner(p);
+  Modal.hide();
+  Render.planner();
+};
+
+window.quickLogVisit = function(venueId) {
+  showAddVisitModal(venueId);
+};
+
+// Quick visit from dashboard
+window.quickVisitModalHtml = function() {
+  const venues = Store.venues();
+  return `
+    <div class="modal-title">Quick Log Visit</div>
+    <div class="form-group"><label class="form-label">Venue</label>
+      <select class="form-select" id="m-venue">
+        ${venues.map(v => `<option value="${v.id}">${v.name}</option>`).join('')}
+      </select>
+    </div>
+    <div id="quick-visit-form"></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="Modal.hide()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveQuickVisit()">Save</button>
+    </div>
+  `;
+};
+
+window.setupQuickVisit = function() {
+  $('#m-venue')?.addEventListener('change', renderQuickForm);
+  renderQuickForm();
+};
+
+function renderQuickForm() {
+  const container = document.getElementById('quick-visit-form');
+  if (!container) return;
+  container.innerHTML = `
+    <div class="form-row" style="margin-top:8px">
+      <div class="form-group"><label class="form-label">Date</label><input class="form-input" type="date" id="m-date" value="${new Date().toISOString().slice(0,10)}"></div>
+      <div class="form-group"><label class="form-label">Type</label>
+        <select class="form-select" id="m-type">
+          <option value="visit">Visit</option>
+          <option value="tasting">Tasting</option>
+          <option value="order">Order</option>
+          <option value="call">Call</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group"><label class="form-label">Notes</label><textarea class="form-textarea" id="m-note" placeholder="What happened?"></textarea></div>
+    <div class="form-group"><label class="form-label">Outcome</label>
+      <select class="form-select" id="m-outcome">
+        <option value="positive">Positive</option>
+        <option value="follow-up">Follow-up needed</option>
+        <option value="neutral">Neutral</option>
+        <option value="negative">Not interested</option>
+      </select>
+    </div>
+  `;
+}
+
+window.saveQuickVisit = function() {
+  const venueId = $('#m-venue')?.value;
+  if (!venueId) return;
+  saveVisit(venueId);
+};
+
+// ─── EXPORT ──────────────────────────────────────────────────
+document.getElementById('exportBtn').addEventListener('click', () => {
+  const data = {
+    venues: Store.venues(),
+    visits: Store.visits(),
+    orders: Store.orders(),
+    stock: Store.stock(),
+    planner: Store.planner(),
+    exportedAt: new Date().toISOString(),
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'wildroad-crm-' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+});
+
+// ─── NAV ─────────────────────────────────────────────────────
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', e => {
+    e.preventDefault();
+    Router.go(item.dataset.view);
+  });
+});
+
+// ─── RENDER: SETTINGS ────────────────────────────────────────
+Render.settings = function() {
+  const products = Store.products();
+  const SPIRIT_TYPES = ['Whisky', 'Gin', 'Rum', 'Vodka', 'Brandy', 'Liqueur', 'Other'];
+
+  document.getElementById('view-settings').innerHTML = `
+    <div class="page-header">
+      <div>
+        <div class="page-title">Settings</div>
+        <div class="page-sub">Manage your product range and app data</div>
+      </div>
+    </div>
+
+    <div style="padding:24px 32px;display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start">
+
+      <div class="card">
+        <div class="card-title">Product Range</div>
+        <div style="margin-bottom:16px;font-size:12px;color:var(--text-muted)">
+          These products appear across venue profiles, stock tracking, and order forms.
+        </div>
+        <div id="product-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">
+          ${products.map(p => `
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg-raised);border-radius:var(--radius);border:1px solid var(--border)">
+              <div style="flex:1">
+                <div style="font-size:13px;font-weight:500">${p.name}</div>
+                <div style="font-size:11px;color:var(--text-dim);margin-top:1px">${p.type} · RRP $${p.rrp}</div>
+              </div>
+              <button class="btn btn-secondary" style="padding:4px 10px;font-size:11px" onclick="showEditProductModal('${p.id}')">Edit</button>
+              <button class="btn btn-danger" style="padding:4px 10px;font-size:11px" onclick="deleteProduct('${p.id}')">Remove</button>
+            </div>`).join('')}
+        </div>
+        <button class="btn btn-primary" onclick="showAddProductModal()">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Product
+        </button>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div class="card">
+          <div class="card-title">Data Management</div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="font-size:12px;color:var(--text-muted);line-height:1.6">
+              Export a full backup of all venues, visits, orders, and stock data as a JSON file.
+            </div>
+            <button class="btn btn-secondary" id="exportBtnSettings">
+              <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Export All Data
+            </button>
+          </div>
+        </div>
+
+        <div class="card" style="border-color:var(--red-dim)">
+          <div class="card-title" style="color:var(--red)">Danger Zone</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px;line-height:1.6">
+            Clear all sales and order history. Venues and contacts are kept. This cannot be undone.
+          </div>
+          <button class="btn btn-danger" onclick="clearAllOrders()">Clear All Sales Data</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('exportBtnSettings')?.addEventListener('click', () => {
+    document.getElementById('exportBtn').click();
+  });
+};
+
+window.showAddProductModal = function() {
+  const SPIRIT_TYPES = ['Whisky', 'Gin', 'Rum', 'Vodka', 'Brandy', 'Liqueur', 'Other'];
+  Modal.show(`
+    <div class="modal-title">Add Product</div>
+    <div class="form-group"><label class="form-label">Product Name*</label>
+      <input class="form-input" id="m-pname" placeholder="e.g. Rogue & Vagabond Silver Rum">
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Spirit Type</label>
+        <select class="form-select" id="m-ptype">
+          ${SPIRIT_TYPES.map(t => `<option>${t}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">RRP ($)</label>
+        <input class="form-input" type="number" id="m-prrp" value="79" min="0">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="Modal.hide()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveNewProduct()">Add Product</button>
+    </div>
+  `);
+};
+
+window.saveNewProduct = function() {
+  const name = $('#m-pname')?.value?.trim();
+  if (!name) return alert('Product name is required.');
+  const products = Store.products();
+  const newProduct = {
+    id: Store.nextId('p'),
+    name,
+    type: $('#m-ptype').value,
+    rrp: parseFloat($('#m-prrp').value) || 79,
+  };
+  products.push(newProduct);
+  Store.saveProducts(products);
+  // Also add a stock entry for the new product
+  const stock = Store.stock();
+  stock.push({ productId: newProduct.id, totalUnits: 0, delivered: 0, returned: 0 });
+  Store.saveStock(stock);
+  Modal.hide();
+  Render.settings();
+};
+
+window.showEditProductModal = function(productId) {
+  const p = Store.products().find(x => x.id === productId);
+  if (!p) return;
+  const SPIRIT_TYPES = ['Whisky', 'Gin', 'Rum', 'Vodka', 'Brandy', 'Liqueur', 'Other'];
+  Modal.show(`
+    <div class="modal-title">Edit Product</div>
+    <div class="form-group"><label class="form-label">Product Name</label>
+      <input class="form-input" id="m-pname" value="${p.name}">
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Spirit Type</label>
+        <select class="form-select" id="m-ptype">
+          ${SPIRIT_TYPES.map(t => `<option ${t===p.type?'selected':''}>${t}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">RRP ($)</label>
+        <input class="form-input" type="number" id="m-prrp" value="${p.rrp}" min="0">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="Modal.hide()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEditProduct('${productId}')">Save</button>
+    </div>
+  `);
+};
+
+window.saveEditProduct = function(productId) {
+  const products = Store.products();
+  const idx = products.findIndex(p => p.id === productId);
+  if (idx === -1) return;
+  products[idx] = { ...products[idx], name: $('#m-pname').value, type: $('#m-ptype').value, rrp: parseFloat($('#m-prrp').value) || 79 };
+  Store.saveProducts(products);
+  Modal.hide();
+  Render.settings();
+};
+
+window.deleteProduct = function(productId) {
+  const p = Store.products().find(x => x.id === productId);
+  if (!confirm(`Remove "${p?.name}" from your product range? This won't delete historical orders.`)) return;
+  Store.saveProducts(Store.products().filter(x => x.id !== productId));
+  Render.settings();
+};
+
+window.clearAllOrders = function() {
+  if (!confirm('Clear all sales data? Venues and contacts will be kept. This cannot be undone.')) return;
+  Store.saveOrders([]);
+  const stock = Store.stock().map(s => ({ ...s, totalUnits: 0, delivered: 0, returned: 0 }));
+  Store.saveStock(stock);
+  alert('Sales data cleared.');
+  Render.settings();
+};
+
+// ─── FAB (mobile quick visit) ─────────────────────────────────
+document.getElementById('fab')?.addEventListener('click', () => {
+  Modal.show(quickVisitModalHtml());
+  setupQuickVisit();
+});
+
+// ─── BOOT ─────────────────────────────────────────────────────
+Router.go(window.innerWidth <= 640 ? 'today' : 'dashboard');
+
+</script>
+</body>
+</html>
